@@ -1,0 +1,30 @@
+# Copyright 2023 Subatomix Research Inc.
+# SPDX-License-Identifier: ISC
+
+# Build products
+obj/
+bin/
+/dist/
+/coverage/
+/Stamp.props
+
+# Visual Studio
+.vs/
+*.user
+
+# Temporary files
+*.log
+*.old
+*.tmp
+
+# Git
+*.orig
+*.patch
+*.rej
+
+# Windows junk
+Thumbs.db
+Desktop.ini
+
+# macOS junk
+.DS_Store

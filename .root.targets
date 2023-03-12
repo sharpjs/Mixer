@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets/3.7.0">
+  <!-- https://github.com/microsoft/MSBuildSdks/tree/main/src/NoTargets -->
+
+  <!--
+    Copyright 2023 Subatomix Research Inc.
+    SPDX-License-Identifier: ISC
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <IsPublishable>false</IsPublishable>
+    <IsPackable>false</IsPackable>
+    <DefaultItemExcludesInProjectFolder>
+      Mixer*\**;
+      coverage\**;
+      dist\**;
+      $(DefaultItemExcludesInProjectFolder)
+    </DefaultItemExcludesInProjectFolder>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="**"    Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);$(MSBuildThisFile)" />
+    <None Include=".*\**" Exclude=".git\**;.vs\**" />
+  </ItemGroup>
+
+</Project>

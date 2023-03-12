@@ -1,0 +1,8 @@
+# Copyright 2023 Subatomix Research Inc.
+# SPDX-License-Identifier: ISC
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Show C# method names in diff chunk headers
+*.cs diff=csharp
