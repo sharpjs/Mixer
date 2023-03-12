@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Copyright 2023 Subatomix Research Inc.
+    SPDX-License-Identifier: ISC
+  -->
+
+  <PropertyGroup>
+    <Description>Test suite for Mixer</Description>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>Mixer</RootNamespace>
+
+    <!-- Emit generated files in obj\Debug\net6.0\generated\Mixer.Generator\Mixer.MixinGenerator -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Subatomix.Testing" Version="2.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mixer\Mixer.csproj" />
+    <ProjectReference Include="..\Mixer.Generator\Mixer.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <GeneratedFile Include="obj\$(Configuration)\$(TargetFramework)\generated\Mixer.Generator\Mixer.MixinGenerator\*.cs" />
+    <None Include="@(GeneratedFile)" Link="Generated\%(Filename)%(Extension)" />
+    <FileWrites Include="@(GeneratedFile)" />
+  </ItemGroup>
+
+</Project>

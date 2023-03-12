@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Copyright 2023 Subatomix Research Inc.
+    SPDX-License-Identifier: ISC
+  -->
+
+  <PropertyGroup>
+    <Description>Mixin support for C#</Description>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mixer.Generator\Mixer.Generator.csproj"
+        ExcludeAssets="compile" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System.AttributeTargets" Static="true" />
+    <Using Include="System.Diagnostics" />
+  </ItemGroup>
+
+  <!--
+    Include the generator DLL in the package as an analyzer
+    see: https://github.com/NuGet/Home/issues/6793#issuecomment-513060540
+    see: $env:ProgramFiles\dotnet\sdk\*\Sdks\NuGet.Build.Tasks.Pack\build\NuGet.Build.Tasks.Pack.targets
+  -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>
+      $(TargetsForTfmSpecificBuildOutput);
+      IncludeGeneratorInPackage
+    </TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeGeneratorInPackage">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)Mixer.Generator.dll">
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+  </Target>
+
+</Project>

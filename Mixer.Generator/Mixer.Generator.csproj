@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Copyright 2023 Subatomix Research Inc.
+    SPDX-License-Identifier: ISC
+  -->
+
+  <PropertyGroup>
+    <Description>Mixin support for C#: Source Generator</Description>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Mixer</RootNamespace>
+
+    <!-- Packed in Mixer.csproj instead -->
+    <IsPackable>false</IsPackable>
+
+    <!-- Opt in to extra checks for analyzers and source generators -->
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
+    <!-- Disable warning 'Add analyzer diagnostic IDs to analyzer release' -->
+    <NoWarn>$(NoWarn);RS2008</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IsExternalInit"                   Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp"    Version="4.5.0" PrivateAssets="all" />
+    <PackageReference Include="Nullable"                         Version="1.3.1" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.CodeAnalysis" />
+    <Using Include="Microsoft.CodeAnalysis.CSharp" />
+    <Using Include="Microsoft.CodeAnalysis.CSharp.Syntax" />
+    <Using Include="Microsoft.CodeAnalysis.CSharp.SyntaxFactory" Static="true" />
+    <Using Include="System.Collections.Immutable" />
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.Diagnostics.CodeAnalysis" />
+    <Using Include="System.Globalization" />
+    <Using Include="System.Text" />
+  </ItemGroup>
+
+</Project>
