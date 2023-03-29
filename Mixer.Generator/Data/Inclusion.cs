@@ -11,25 +11,37 @@ internal class Inclusion
     /// <summary>
     ///   Initializes a new <see cref="Inclusion"/> instance.
     /// </summary>
-    /// <param name="mixins"></param>
-    /// <param name="target"></param>
-    /// <param name="isGeneric"></param>
-    public Inclusion(ImmutableArray<MixinReference> mixins, Target target, bool isGeneric)
+    /// <param name="targetType">
+    ///   The type into which to include <paramref name="mixins"/>.
+    /// </param>
+    /// <param name="mixins">
+    ///   References to mixins to include into <paramref name="targetType"/>.
+    /// </param>
+    /// <param name="isGeneric">
+    ///   <see langword="true"/> if the inclusion request arises via the
+    ///     generic <c>IncludeAttribute&lt;T&gt;</c>;
+    ///   <see langword="false"/> if the inclusion request arises via the
+    ///     non-generic <c>IncludeAttribute</c>.
+    /// </param>
+    public Inclusion(
+        INamedTypeSymbol               targetType,
+        ImmutableArray<MixinReference> mixins,
+        bool                           isGeneric)
     {
-        Mixins    = mixins;
-        Target    = target;
-        IsGeneric = isGeneric;
+        TargetType = targetType;
+        Mixins     = mixins;
+        IsGeneric  = isGeneric;
     }
 
     /// <summary>
-    ///   Gets the references to mixins to include into <see cref="Target"/>.
+    ///   Gets the target type into which to include <see cref="Mixins"/>.
     /// </summary>
-    public ImmutableArray<MixinReference> Mixins { get; }
+    public INamedTypeSymbol TargetType { get; }
 
     /// <summary>
-    ///   Gets the target into which to include <see cref="Mixins"/>.
+    ///   Gets the references to mixins to include into <see cref="TargetType"/>.
     /// </summary>
-    public Target Target { get; }
+    public ImmutableArray<MixinReference> Mixins { get; }
 
     /// <summary>
     ///   Gets whether the inclusion request arose via the generic
@@ -44,7 +56,7 @@ internal class Inclusion
     {
         // NOTE: The name allows any identifier character or .,-+`_ ()[]{}
         return new StringBuilder()
-            .AppendForFileName(Target.Type)
+            .AppendForFileName(TargetType)
             .AppendFormat(IsGeneric ? ".1" : ".0")
             .Append(".g.cs")
             .ToString();

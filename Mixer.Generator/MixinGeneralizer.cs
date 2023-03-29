@@ -37,6 +37,10 @@ namespace Mixer;
 ///       Applies <see cref="System.CodeDom.Compiler.GeneratedCodeAttribute"/>
 ///       to first-level child declarations in the mixin body.
 ///     </item>
+///     <item>
+///       Makes miscellaneous spacing changes for readability of the eventual
+///       generated code.
+///     </item>
 ///   </list>
 /// </remarks>
 internal class MixinGeneralizer : CSharpSyntaxRewriter
@@ -44,29 +48,37 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
     private readonly INamedTypeSymbol                    _mixinType;
     private readonly SemanticModel                       _semanticModel;
     private readonly ImmutableDictionary<string, string> _placeholders;
+    private readonly SyntaxTrivia                        _endOfLine;
     private readonly CancellationToken                   _cancellation;
 
-    public MixinGeneralizer(INamedTypeSymbol type, SemanticModel semanticModel, CancellationToken cancellation)
+    /// <summary>
+    ///   Initializes a new <see cref="MixinGeneralizer"/> instance.
+    /// </summary>
+    public MixinGeneralizer(
+        INamedTypeSymbol  mixinType,
+        SemanticModel     semanticModel,
+        CancellationToken cancellation)
     {
-        if (type is null)
-            throw new ArgumentNullException(nameof(type));
-        if (semanticModel is null)
-            throw new ArgumentNullException(nameof(semanticModel));
-
-        _mixinType     = type;
+        _mixinType     = mixinType;
         _semanticModel = semanticModel;
-        _placeholders  = GenerateTypeParameterPlaceholders(type);
+        _placeholders  = GenerateTypeParameterPlaceholders(mixinType);
+        _endOfLine     = GetPlatformEndOfLine();
         _cancellation  = cancellation;
 
         // TODO: Dictionary of module names to extern aliases, since Roslyn does not provide it.
     }
 
-    public TypeDeclarationSyntax Generalize(TypeDeclarationSyntax node)
+    /// <summary>
+    ///   Converts a mixin from its declaration form to a generalized form
+    ///   suitable for inclusion into any targets.
+    /// </summary>
+    public Mixin Generalize(TypeDeclarationSyntax declaration)
     {
-        if (node is null)
-            throw new ArgumentNullException(nameof(node));
+        var nullableContext = _semanticModel.GetNullableContext(declaration.SpanStart);
 
-        return (TypeDeclarationSyntax) Visit(node)!;
+        declaration = (TypeDeclarationSyntax) Visit(declaration)!;
+
+        return new(_mixinType, declaration, nullableContext);
     }
 
     #region Visitor Methods: Class, Struct, and Record Declarations
@@ -79,7 +91,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = _declarationDepth switch
         {
             1 => MixinDeclaration(node),
-            2 => node.AddAttributeLists(GeneratedCodeAttributeList),
+            2 => node.AddAttributeLists(MakeGeneratedCodeAttributeList(node)),
             _ => node,
         };
 
@@ -95,7 +107,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = _declarationDepth switch
         {
             1 => MixinDeclaration(node),
-            2 => node.AddAttributeLists(GeneratedCodeAttributeList),
+            2 => node.AddAttributeLists(MakeGeneratedCodeAttributeList(node)),
             _ => node,
         };
 
@@ -111,7 +123,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = _declarationDepth switch
         {
             1 => MixinDeclaration(node),
-            2 => node.AddAttributeLists(GeneratedCodeAttributeList),
+            2 => node.AddAttributeLists(MakeGeneratedCodeAttributeList(node)),
             _ => node,
         };
 
@@ -163,7 +175,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (EnumDeclarationSyntax) base.VisitEnumDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -175,7 +187,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (InterfaceDeclarationSyntax) base.VisitInterfaceDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -187,7 +199,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (DelegateDeclarationSyntax) base.VisitDelegateDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -201,7 +213,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         if (IsChildDeclaration)
             node = node
                 .WithIdentifier(Identifier(TargetTypeNamePlaceholder))
-                .AddAttributeLists(GeneratedCodeAttributeList);
+                .AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -215,7 +227,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         if (IsChildDeclaration)
             node = node
                 .WithIdentifier(Identifier(TargetTypeNamePlaceholder))
-                .AddAttributeLists(GeneratedCodeAttributeList);
+                .AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -227,7 +239,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (FieldDeclarationSyntax) base.VisitFieldDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -239,7 +251,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (PropertyDeclarationSyntax) base.VisitPropertyDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -251,7 +263,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (AccessorDeclarationSyntax) base.VisitAccessorDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -263,7 +275,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (IndexerDeclarationSyntax) base.VisitIndexerDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -275,7 +287,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (EventDeclarationSyntax) base.VisitEventDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -287,7 +299,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (EventFieldDeclarationSyntax) base.VisitEventFieldDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -299,7 +311,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (MethodDeclarationSyntax) base.VisitMethodDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -311,7 +323,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (OperatorDeclarationSyntax) base.VisitOperatorDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
@@ -323,14 +335,14 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         node = (ConversionOperatorDeclarationSyntax) base.VisitConversionOperatorDeclaration(node)!;
 
         if (IsChildDeclaration)
-            node = node.AddAttributeLists(GeneratedCodeAttributeList);
+            node = node.AddAttributeLists(MakeGeneratedCodeAttributeList(node));
 
         LeaveDeclaration();
         return node;
     }
 
     #endregion
-    #region Visitor Methods: Attribute Lists
+    #region Visitor Methods: Attribute and Base Lists
 
     public override SyntaxNode? VisitAttributeList(AttributeListSyntax node)
     {
@@ -345,6 +357,16 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         return IsMixinDeclaration && IsMixinMarker(node)
             ? null // disappears
             : base.VisitAttribute(node);
+    }
+
+    public override SyntaxNode? VisitBaseList(BaseListSyntax node)
+    {
+        node = (BaseListSyntax) base.VisitBaseList(node)!;
+
+        if (IsMixinDeclaration)
+            node = node.WithTrailingTrivia(TriviaList(_endOfLine));
+
+        return node;
     }
 
     #endregion
@@ -585,43 +607,28 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
     #endregion
     #region Helpers: GeneratedCodeAttribute
 
-    private static readonly string
-        ToolName    = typeof(MixinGenerator).Assembly.GetName().Name,
-        ToolVersion = typeof(MixinGenerator).Assembly.GetName().Version.ToString();
+    private readonly AttributeSyntax _generatedCodeAttribute
+        = MakeGeneratedCodeAttribute();
 
-#pragma warning disable IDE1006 // Naming Styles
-    // Think of this more as a constant than a typical private readonly.
-
-    private readonly AttributeListSyntax[]
-        GeneratedCodeAttributeList = { MakeGeneratedCodeAttributeList() };
-
-#pragma warning restore IDE1006 // Naming Styles
-
-    private static AttributeListSyntax MakeGeneratedCodeAttributeList()
+    private AttributeListSyntax MakeGeneratedCodeAttributeList(SyntaxNode target)
     {
-        return AttributeList(SeparatedList(new[]
-        {
-            MakeGeneratedCodeAttribute()
-        }));
+        return AttributeList(
+            Token(target.GetLeadingTrivia(), SyntaxKind.OpenBracketToken, default),
+            target: default,
+            SingletonSeparatedList(_generatedCodeAttribute),
+            Token(default, SyntaxKind.CloseBracketToken, TriviaList(_endOfLine))
+        );
     }
 
     private static AttributeSyntax MakeGeneratedCodeAttribute()
     {
         return Attribute(
             Global("System").Dot("CodeDom").Dot("Compiler").Dot("GeneratedCodeAttribute"),
-            AttributeArgumentList(SeparatedList(new[]
-            {
-                AttributeArgument(LiteralExpression(ToolName)),
-                AttributeArgument(LiteralExpression(ToolVersion)),
-            }))
-        );
-    }
-
-    private static LiteralExpressionSyntax LiteralExpression(string value)
-    {
-        return SyntaxFactory.LiteralExpression(
-            SyntaxKind.StringLiteralExpression,
-            Literal(value)
+            AttributeArgumentList(
+                AttributeArgument(LiteralExpression(Tool.Name)),
+                TokenAndSpace(SyntaxKind.CommaToken),
+                AttributeArgument(LiteralExpression(Tool.Version.ToString()))
+            )
         );
     }
 

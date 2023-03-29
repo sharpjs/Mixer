@@ -11,6 +11,9 @@ using static SymbolKind;
 /// </summary>
 internal static class SymbolExtensions
 {
+    // Inheritance Hierarchy
+    // =====================
+    //
     // INamespaceOrTypeSymbol
     // - INamespaceSymbol
     // - ITypeSymbol 
@@ -160,5 +163,25 @@ internal static class SymbolExtensions
                 return true;
 
         return false;
+    }
+
+    public static bool HasConstraints(this ITypeParameterSymbol parameter)
+    {
+        return parameter.HasSpecialPrimaryConstraint()  // primary special
+            || parameter.ConstraintTypes.Any()          // primary class, secondary
+            || parameter.HasConstructorConstraint;      // constructor
+    }
+
+    public static bool HasSpecialPrimaryConstraint(this ITypeParameterSymbol parameter)
+    {
+        return parameter.HasReferenceTypeConstraint     // class
+            || parameter.HasValueTypeConstraint         // struct
+            || parameter.HasNotNullConstraint           // notnull
+            || parameter.HasUnmanagedTypeConstraint;    // unmanaged
+    }
+
+    public static bool HasConstraintTypes(this ITypeParameterSymbol parameter)
+    {
+        return parameter.ConstraintTypes.Any();
     }
 }

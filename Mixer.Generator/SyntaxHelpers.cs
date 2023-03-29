@@ -3,6 +3,8 @@
 
 global using static Mixer.SyntaxHelpers;
 
+using System.Runtime.InteropServices;
+
 namespace Mixer;
 
 /// <summary>
@@ -93,5 +95,92 @@ internal static class SyntaxHelpers
     public static Location GetLocation(this SyntaxReference reference)
     {
         return reference.SyntaxTree.GetLocation(reference.Span);
+    }
+
+    public static SyntaxTrivia GetEndOfLine(this SyntaxNode node)
+    {
+        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                return trivia;
+
+        return GetPlatformEndOfLine();
+    }
+
+    [ExcludeFromCodeCoverage] // because a test run can exercise only one path
+    public static SyntaxTrivia GetPlatformEndOfLine()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? CarriageReturnLineFeed
+            : LineFeed;
+    }
+
+    public static SyntaxToken TokenAndSpace(SyntaxKind kind)
+    {
+        return Token(default, kind, OneSpace());
+    }
+
+    public static SyntaxTriviaList OneSpace()
+    {
+        return TriviaList(Space);
+    }
+
+    public static LiteralExpressionSyntax LiteralExpression(string value)
+    {
+        return SyntaxFactory.LiteralExpression(
+            SyntaxKind.StringLiteralExpression,
+            Literal(value)
+        );
+    }
+
+    public static AttributeArgumentListSyntax AttributeArgumentList(
+        params SyntaxNodeOrToken[] arguments)
+    {
+        return SyntaxFactory.AttributeArgumentList(
+            SeparatedList<AttributeArgumentSyntax>(
+                NodeOrTokenList(arguments)
+            )
+        );
+    }
+
+    public static SeparatedSyntaxList<TTarget> MakeCommaSeparatedList<TSource, TTarget>(
+        ImmutableArray<TSource> source,
+        Func<TSource, TTarget>  selector)
+        where TTarget : SyntaxNode
+    {
+        var array = ImmutableArray.CreateBuilder<SyntaxNodeOrToken>(source.Length * 2 - 1);
+
+        for (var index = 0;;)
+        {
+            array.Add(selector(source[index]));
+
+            if (++index == source.Length)
+                break;
+
+            array.Add(TokenAndSpace(SyntaxKind.CommaToken));
+        }
+
+        return SeparatedList<TTarget>(array.MoveToImmutable());
+    }
+
+    public static TypeConstraintSyntax NotNullConstraint()
+    {
+        return TypeConstraint(IdentifierName("notnull"));
+    }
+
+    public static TypeConstraintSyntax UnmanagedConstraint()
+    {
+        return TypeConstraint(IdentifierName(
+            Identifier(default, SyntaxKind.UnmanagedKeyword, "unmanaged", "unmanaged", default)
+        ));
+    }
+
+    public static void AddCommaSeparated(
+        this ImmutableArray<SyntaxNodeOrToken>.Builder array,
+        SyntaxNode                                     node)
+    {
+        if (array.Any())
+            array.Add(TokenAndSpace(SyntaxKind.CommaToken));
+
+        array.Add(node);
     }
 }

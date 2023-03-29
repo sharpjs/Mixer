@@ -3,6 +3,8 @@
 
 namespace Mixer;
 
+using static MixinReferenceHelpers;
+
 using MixinDictionary = ImmutableDictionary<INamedTypeSymbol, Mixin>;
 
 /// <summary>
@@ -22,11 +24,16 @@ public class MixinGenerator : IIncrementalGenerator
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        // Discover language version
+        var version = context.ParseOptionsProvider
+            .Select(GetLanguageVersion);
+
         // Discover mixins: [Mixin]
         var mixins = context.SyntaxProvider
             .ForAttributeWithMetadataName(MixinAttributeName, IsSupported, CaptureMixin)
             .Collect()
-            .Select(ToDictionary);
+            .Select(ToDictionary)
+            .Combine(version);
 
         // Discover inclusions: [Include(typeof(T))]
         var inclusions0 = context.SyntaxProvider
@@ -43,7 +50,14 @@ public class MixinGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(inclusions1, Execute);
     }
 
-    private static bool IsSupported(SyntaxNode node, CancellationToken cancellation)
+    private static LanguageVersion GetLanguageVersion(ParseOptions options, CancellationToken _)
+    {
+        return options is CSharpParseOptions cs
+            ? cs.LanguageVersion
+            : LanguageVersion.Latest;
+    }
+
+    private static bool IsSupported(SyntaxNode node, CancellationToken _)
     {
         return node.RawKind is
         (
@@ -58,12 +72,11 @@ public class MixinGenerator : IIncrementalGenerator
         GeneratorAttributeSyntaxContext context,
         CancellationToken               cancellation)
     {
-        var node = (TypeDeclarationSyntax) context.TargetNode;
-        var type = (INamedTypeSymbol)      context.TargetSymbol;
+        var mixinType   = (INamedTypeSymbol)      context.TargetSymbol;
+        var declaration = (TypeDeclarationSyntax) context.TargetNode;
 
-        node = new MixinGeneralizer(type, context.SemanticModel, cancellation).Generalize(node);
-
-        return new(type, node);
+        return new MixinGeneralizer(mixinType, context.SemanticModel, cancellation)
+            .Generalize(declaration);
     }
 
     private static MixinDictionary ToDictionary(
@@ -77,41 +90,33 @@ public class MixinGenerator : IIncrementalGenerator
         GeneratorAttributeSyntaxContext context,
         CancellationToken               cancellation)
     {
-        var references = context.Attributes.GetMixinReferences0();
+        var targetType = (INamedTypeSymbol) context.TargetSymbol;
+        var references = GetMixinReferences0(context.Attributes);
 
-        return CaptureInclusion(ref context, references, isGeneric: false);
+        return new Inclusion(targetType, references, isGeneric: false);
     }
 
     private static Inclusion CaptureInclusion1(
         GeneratorAttributeSyntaxContext context,
         CancellationToken               cancellation)
     {
-        var references = context.Attributes.GetMixinReferences1();
+        var targetType = (INamedTypeSymbol) context.TargetSymbol;
+        var references = GetMixinReferences1(context.Attributes);
 
-        return CaptureInclusion(ref context, references, isGeneric: true);
-    }
-
-    private static Inclusion CaptureInclusion(
-        ref GeneratorAttributeSyntaxContext context,
-        ImmutableArray<MixinReference>      references,
-        bool                                isGeneric)
-    {
-        var node = (TypeDeclarationSyntax) context.TargetNode;
-        var type = (INamedTypeSymbol)      context.TargetSymbol;
-
-        var target = TargetTemplatizer.Templatize(type, node);
-
-        return new Inclusion(references, target, isGeneric);
+        return new Inclusion(targetType, references, isGeneric: true);
     }
 
     private static void Execute(
-        SourceProductionContext      context,
-        (Inclusion, MixinDictionary) input)
+        SourceProductionContext                         context,
+        (Inclusion, (MixinDictionary, LanguageVersion)) item)
     {
-        var (inclusion, mixinDictionary) = input;
+        var (inclusion, (dictionary, version)) = item;
 
-        var mixins = inclusion.Mixins.Resolve(mixinDictionary, context.ReportDiagnostic);
-        var output = new MixinOutputBuilder(inclusion.Target, mixins).Build();
+        var mixins = ResolveMixins(inclusion.Mixins, dictionary, context.ReportDiagnostic);
+        if (!mixins.Any())
+            return;
+
+        var output = new MixinOutputBuilder(inclusion.TargetType, mixins, version).Build();
 
         context.AddSource(inclusion.GetFileName(), output);
     }

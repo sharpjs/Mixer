@@ -9,20 +9,19 @@
     <Description>Test suite for Mixer</Description>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Mixer</RootNamespace>
-
     <!-- Emit generated files in obj\Debug\net6.0\generated\Mixer.Generator\Mixer.MixinGenerator -->
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Subatomix.Testing"                Version="2.4.1" />
+    <PackageReference Include="Subatomix.Testing" Version="2.4.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp"    Version="4.5.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.5.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Mixer\Mixer.csproj" />
-    <ProjectReference Include="..\Mixer.Generator\Mixer.Generator.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\Mixer.Generator\Mixer.Generator.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,7 +29,8 @@
     <Using Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(EmitCompilerGeneratedFiles)' == 'true'">
+    <ProjectReference Update="..\Mixer.Generator\Mixer.Generator.csproj" OutputItemType="Analyzer" />
     <GeneratedFile Include="obj\$(Configuration)\$(TargetFramework)\generated\Mixer.Generator\Mixer.MixinGenerator\*.cs" />
     <None Include="@(GeneratedFile)" Link="Generated\%(Filename)%(Extension)" />
     <FileWrites Include="@(GeneratedFile)" />

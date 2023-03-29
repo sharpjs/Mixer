@@ -30,26 +30,34 @@ internal class MixinSpecializer : CSharpSyntaxRewriter
     private /*lazy*/ SimpleNameSyntax?                       _targetName;
     private readonly ImmutableDictionary<string, TypeSyntax> _replacements;
 
-    public MixinSpecializer(INamedTypeSymbol sourceType, INamedTypeSymbol targetType)
+    /// <summary>
+    ///   Initializes a new <see cref="MixinSpecializer"/> instance.
+    /// </summary>
+    public MixinSpecializer(INamedTypeSymbol mixinType, INamedTypeSymbol targetType)
     {
-        if (sourceType is null)
-            throw new ArgumentNullException(nameof(sourceType));
+        if (mixinType is null)
+            throw new ArgumentNullException(nameof(mixinType));
         if (targetType is null)
             throw new ArgumentNullException(nameof(targetType));
 
         _targetType   = targetType;
-        _replacements = GenerateReplacements(sourceType);
+        _replacements = GenerateReplacements(mixinType);
     }
 
     private SimpleNameSyntax TargetName
         => _targetName ??= GetNameWithGenericArguments(_targetType);
 
-    public TypeDeclarationSyntax Specialize(TypeDeclarationSyntax node)
+    /// <summary>
+    ///   Converts a mixin from the generalized form produced by
+    ///   <see cref="MixinGeneralizer"/> to a specialized form ready for
+    ///   inclusion into a specific target.
+    /// </summary>
+    public TypeDeclarationSyntax Specialize(TypeDeclarationSyntax declaration)
     {
-        if (node is null)
-            throw new ArgumentNullException(nameof(node));
+        if (declaration is null)
+            throw new ArgumentNullException(nameof(declaration));
 
-        return (TypeDeclarationSyntax) Visit(node)!;
+        return (TypeDeclarationSyntax) Visit(declaration)!;
     }
 
     public override SyntaxNode? VisitConstructorDeclaration(ConstructorDeclarationSyntax node)

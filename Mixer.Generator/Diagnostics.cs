@@ -34,4 +34,5 @@ internal static class Diagnostics
         messageFormat:      "Cannot include '{0}' because it is not a mixin. Mixins must be marked with [Mixin].",
         defaultSeverity:    DiagnosticSeverity.Error,
         isEnabledByDefault: true
-    ); }
+    );
+}

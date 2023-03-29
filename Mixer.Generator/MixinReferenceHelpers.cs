@@ -7,10 +7,10 @@ namespace Mixer;
 ///   Extension methods for discovering <see cref="MixinReference"/> instances
 ///   and for resolving them to <see cref="Mixin"/> instances.
 /// </summary>
-internal static class MixinReferenceExtensions
+internal static class MixinReferenceHelpers
 {
     public static ImmutableArray<MixinReference> GetMixinReferences0(
-        this ImmutableArray<AttributeData> attributes)
+        ImmutableArray<AttributeData> attributes)
     {
         var visited = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
         var builder = ImmutableArray.CreateBuilder<MixinReference>(attributes.Length);
@@ -51,7 +51,7 @@ internal static class MixinReferenceExtensions
     }
 
     public static ImmutableArray<MixinReference> GetMixinReferences1(
-        this ImmutableArray<AttributeData> attributes)
+        ImmutableArray<AttributeData> attributes)
     {
         var visited = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
         var builder = ImmutableArray.CreateBuilder<MixinReference>(attributes.Length);
@@ -83,8 +83,8 @@ internal static class MixinReferenceExtensions
             : builder.ToImmutable();
     }
 
-    public static ImmutableArray<Mixin> Resolve(
-        this ImmutableArray <MixinReference>          references,
+    public static ImmutableArray<Mixin> ResolveMixins(
+        ImmutableArray <MixinReference>               references,
         ImmutableDictionary <INamedTypeSymbol, Mixin> mixins,
         Action<Diagnostic>                            reporter)
     {

@@ -19,6 +19,9 @@ internal readonly struct Mixin
     /// <param name="content">
     ///   The content of the mixin.
     /// </param>
+    /// <param name="nullableContext">
+    ///   The nullable analysis state for the mixin.
+    /// </param>
     /// <exception cref="ArgumentNullException">
     ///   <paramref name="type"/> or <paramref name="content"/> is
     ///   <see langword="null"/>.
@@ -26,7 +29,10 @@ internal readonly struct Mixin
     /// <exception cref="ArgumentException">
     ///   <paramref name="type"/> is a partially or fully closed generic type.
     /// </exception>
-    public Mixin(INamedTypeSymbol type, TypeDeclarationSyntax content)
+    public Mixin(
+        INamedTypeSymbol      type,
+        TypeDeclarationSyntax content,
+        NullableContext       nullableContext)
     {
         if (type is null)
             throw new ArgumentNullException(nameof(type));
@@ -37,13 +43,15 @@ internal readonly struct Mixin
 
         Type             = type;
         ContentReference = content.GetReference();
+        NullableContext  = nullableContext;
     }
 
     // Used by Close()
-    private Mixin(INamedTypeSymbol type, SyntaxReference content)
+    private Mixin(INamedTypeSymbol type, SyntaxReference content, NullableContext nullableContext)
     {
         Type             = type;
         ContentReference = content;
+        NullableContext  = nullableContext;
     }
 
     /// <summary>
@@ -67,6 +75,11 @@ internal readonly struct Mixin
     ///   Gets a reference to the content of the mixin.
     /// </summary>
     private SyntaxReference ContentReference { get; }
+
+    /// <summary>
+    ///   Gets the nullable analysis state for the mixin.
+    /// </summary>
+    public NullableContext NullableContext { get; }
 
     /// <summary>
     ///   Creates a new, closed <see cref="Mixin"/> instance from the current
@@ -111,7 +124,7 @@ internal readonly struct Mixin
         if (!type.IsConstructedFrom(Type))
             throw new ArgumentException("Type must be constructed from from the mixin type.", nameof(type));
 
-        return new(type, ContentReference);
+        return new(type, ContentReference, NullableContext);
     }
 
     /// <summary>
