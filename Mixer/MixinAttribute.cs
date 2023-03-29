@@ -1,8 +1,6 @@
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
-using System.Diagnostics;
-
 namespace Mixer;
 
 /// <summary>
