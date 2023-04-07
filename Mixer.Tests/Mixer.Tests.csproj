@@ -31,7 +31,7 @@
 
   <ItemGroup Condition="'$(EmitCompilerGeneratedFiles)' == 'true'">
     <ProjectReference Update="..\Mixer.Generator\Mixer.Generator.csproj" OutputItemType="Analyzer" />
-    <GeneratedFile Include="obj\$(Configuration)\$(TargetFramework)\generated\Mixer.Generator\Mixer.MixinGenerator\*.cs" />
+    <GeneratedFile Include="$(IntermediateOutputPath)generated\Mixer.Generator\Mixer.MixinGenerator\*.cs" />
     <None Include="@(GeneratedFile)" Link="Generated\%(Filename)%(Extension)" />
     <FileWrites Include="@(GeneratedFile)" />
   </ItemGroup>
