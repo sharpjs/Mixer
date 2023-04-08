@@ -11,7 +11,7 @@ namespace Mixer;
 /// <remarks>
 ///   Produced by <see cref="RunMixinGenerator(string[])"/> and its overloads.
 /// </remarks>
-internal readonly struct MixinGeneratorResult
+internal readonly ref struct MixinGeneratorResult
 {
     /// <summary>
     ///   Initializes a new <see cref="MixinGeneratorResult"/> for a failed
@@ -34,7 +34,7 @@ internal readonly struct MixinGeneratorResult
     /// <param name="result">
     ///   The result of the generator run.
     /// </param>
-    public MixinGeneratorResult(ref GeneratorRunResult result)
+    public MixinGeneratorResult(GeneratorRunResult result)
     {
         Diagnostics      = Format(result.Diagnostics);
         GeneratedSources = Format(result.GeneratedSources);

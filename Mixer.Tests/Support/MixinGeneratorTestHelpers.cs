@@ -94,7 +94,7 @@ internal static class MixinGeneratorTestHelpers
 
         var result = RunMixinGenerator(compilation);
 
-        return new(ref result);
+        return new(result);
     }
 
     private static IEnumerable<SyntaxTree> Parse(string[] sources, LanguageVersion version)
