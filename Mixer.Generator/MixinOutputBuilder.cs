@@ -104,7 +104,7 @@ internal readonly ref struct MixinOutputBuilder
             attributeLists:   default,
             modifiers:        default,
             namespaceKeyword: Token(MakePreambleTrivia(), K.NamespaceKeyword, TriviaList(Space)),
-            name:             name.WithTrailingTrivia(Space),
+            name:             name.WithTrailingTrivia(_endOfLine),
             openBraceToken:   Token(default, K.OpenBraceToken, TriviaList(_endOfLine)),
             externs:          default,
             usings:           default,

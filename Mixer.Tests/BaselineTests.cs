@@ -44,7 +44,8 @@ public class BaselineTests
             //   See https://github.com/sharpjs/Mixer for more information.
             // </auto-generated>
 
-            namespace Test {
+            namespace Test
+            {
             #region Source
 
             partial class Target
@@ -99,7 +100,8 @@ public class BaselineTests
             //   See https://github.com/sharpjs/Mixer for more information.
             // </auto-generated>
 
-            namespace Test {
+            namespace Test
+            {
             #region Source
             #nullable enable
 
