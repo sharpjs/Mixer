@@ -7,7 +7,7 @@ namespace Mixer;
 public class NotAMixinTests
 {
     [Test]
-    public void NotAMixin()
+    public void English()
     {
         var result = RunMixinGenerator(
             """
@@ -27,6 +27,30 @@ public class NotAMixinTests
             "(5,2): error MIX0001: " +
                 "Cannot include 'NotAMixin' because it is not a mixin. " +
                 "Mixins must be marked with [Mixin]."
+        );
+    }
+
+    [Test, SetUICulture("es-MX")]
+    public void Spanish()
+    {
+        var result = RunMixinGenerator(
+            """
+            class NotAMixin { }
+            """,
+            """
+            using Mixer;
+
+            namespace Test;
+
+            [Include<NotAMixin>]
+            partial class Target { }
+            """
+        );
+
+        result.ShouldBeDiagnostics(
+            "(5,2): error MIX0001: " +
+                "No se puede incluir 'NotAMixin' porque no es una mixin. " +
+                "Los mixins deben estar marcados con [Mixin]."
         );
     }
 }

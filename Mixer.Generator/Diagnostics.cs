@@ -4,7 +4,11 @@
 #pragma warning disable IDE1006 // Naming Styles
 // Done to disambiguate diagnostic descriptors from factory methods.
 
+using Mixer.Properties;
+
 namespace Mixer;
+
+using static Resources;
 
 /// <summary>
 ///   Methods to create <see cref="Diagnostic"/> instances.
@@ -30,9 +34,12 @@ internal static class Diagnostics
     private static readonly DiagnosticDescriptor _NotMixin = new(
         id:                 "MIX0001",
         category:           Category,
-        title:              "Included types must be mixins",
-        messageFormat:      "Cannot include '{0}' because it is not a mixin. Mixins must be marked with [Mixin].",
+        title:              Resource(nameof(MIX0001_Title)),
+        messageFormat:      Resource(nameof(MIX0001_MessageFormat)),
         defaultSeverity:    DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
+
+    private static LocalizableResourceString Resource(string name)
+        => new LocalizableResourceString(name, ResourceManager, typeof(Resources));
 }

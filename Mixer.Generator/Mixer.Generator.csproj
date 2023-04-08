@@ -9,6 +9,7 @@
     <Description>Mixin support for C#: Source Generator</Description>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Mixer</RootNamespace>
+    <NeutralLanguage>en</NeutralLanguage>
 
     <!-- Packed in Mixer.csproj instead -->
     <IsPackable>false</IsPackable>
@@ -37,6 +38,18 @@
     <Using Include="System.Diagnostics.CodeAnalysis" />
     <Using Include="System.Globalization" />
     <Using Include="System.Text" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="**\*.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>%(FileName).Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="**\*.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>$([System.Text.RegularExpressions.Regex]::Replace('%(FileName)', '\.Designer$', '')).resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

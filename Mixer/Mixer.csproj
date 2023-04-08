@@ -36,6 +36,9 @@
       <TfmSpecificPackageFile Include="$(OutputPath)Mixer.Generator.dll">
         <PackagePath>analyzers/dotnet/cs</PackagePath>
       </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="$(OutputPath)**\Mixer.Generator.resources.dll">
+        <PackagePath>analyzers/dotnet/cs/%(RecursiveDir)</PackagePath>
+      </TfmSpecificPackageFile>
     </ItemGroup>
   </Target>
 

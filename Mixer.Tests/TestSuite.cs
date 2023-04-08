@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: ISC
 
 [assembly: Parallelizable(ParallelScope.Children)]
-[assembly: SetCulture("en-CA")]
+[assembly: SetCulture  ("en-CA")] // for number and time formatting
+[assembly: SetUICulture("en-CA")] // for resource files
 
 namespace Mixer;
 
