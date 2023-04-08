@@ -10,8 +10,22 @@ public class BaselineTests
     public void Nongeneric()
     {
         var result = RunMixinGenerator(
-            "using Mixer; namespace Test; [Mixin]                   class Source { }",
-            "using Mixer; namespace Test; [Include(typeof(Source))] class Target { }"
+            """
+            using Mixer;
+
+            namespace Test;
+
+            [Mixin]
+            class Source { }
+            """,
+            """
+            using Mixer;
+
+            namespace Test;
+
+            [Include(typeof(Source))]
+            partial class Target { }
+            """
         );
 
         result.ShouldBeGeneratedSources(new()
@@ -44,8 +58,24 @@ public class BaselineTests
     public void Generic()
     {
         var result = RunMixinGenerator(
-            "using Mixer; namespace Test { [Mixin]           class Source { } }",
-            "using Mixer; namespace Test { [Include<Source>] class Target { } }"
+            """
+            using Mixer;
+
+            namespace Test
+            {
+                [Mixin]
+                class Source { }
+            }
+            """,
+            """
+            using Mixer;
+
+            namespace Test
+            {
+                [Include<Source>]
+                partial class Target { }
+            }
+            """
         );
 
         result.ShouldBeGeneratedSources(new()

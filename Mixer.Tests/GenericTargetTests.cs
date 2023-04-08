@@ -12,14 +12,19 @@ public class GenericTargetTests
         var result = RunMixinGenerator(
             """
             using Mixer;
+
             namespace Test;
-            [Mixin] class Source { }
+
+            [Mixin]
+            class Source { }
             """,
             """
             using Mixer;
+
             namespace Test;
+
             [Include<Source>]
-            class Target<T0, T1> { }
+            partial class Target<T0, T1> { }
             """
         );
 
@@ -55,15 +60,20 @@ public class GenericTargetTests
         var result = RunMixinGenerator(
             """
             using Mixer;
+
             namespace Test;
-            [Mixin] class Source { }
+
+            [Mixin]
+            class Source { }
             """,
             """
             using System;
             using Mixer;
+
             namespace Test;
+
             [Include<Source>]
-            class Target<T0, T1>
+            partial class Target<T0, T1>
                 where T0 : Attribute, IFormattable, new()
                 where T1 : notnull, new()
             { }
