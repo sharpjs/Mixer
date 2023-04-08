@@ -53,7 +53,6 @@ public class BaselineTests
             }
 
             #endregion Source
-
             }
 
             """
@@ -111,7 +110,6 @@ public class BaselineTests
 
             #nullable restore
             #endregion Source
-
             }
 
             """
@@ -163,7 +161,6 @@ public class BaselineTests
             #nullable restore
             #endregion Source
 
-
             """
         });
     }
@@ -212,7 +209,6 @@ public class BaselineTests
 
             #nullable restore
             #endregion Source
-
 
             """
         });

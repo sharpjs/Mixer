@@ -152,8 +152,8 @@ internal readonly ref struct MixinOutputBuilder
         };
 
         return _version.SupportsNullableAnalysis()
-            ? WrapInTriviaWithNullable  (mixin, rendered)
-            : WrapInTriviaWithoutNulable(mixin, rendered);
+            ? WrapInTriviaWithNullable   (mixin, rendered)
+            : WrapInTriviaWithoutNullable(mixin, rendered);
     }
 
     private TypeDeclarationSyntax Specialize(Mixin mixin)
@@ -355,7 +355,7 @@ internal readonly ref struct MixinOutputBuilder
         return ClassOrStructConstraint(K.ClassConstraint);
     }
 
-    private MemberDeclarationSyntax WrapInTriviaWithoutNulable(
+    private MemberDeclarationSyntax WrapInTriviaWithoutNullable(
         Mixin mixin, TypeDeclarationSyntax rendered)
     {
         return rendered
@@ -366,8 +366,7 @@ internal readonly ref struct MixinOutputBuilder
             .WithTrailingTrivia(
                 _endOfLine,
                 _endOfLine,
-                MakeEndRegionDirective(mixin),
-                _endOfLine
+                MakeEndRegionDirective(mixin)
             );
     }
 
@@ -384,8 +383,7 @@ internal readonly ref struct MixinOutputBuilder
                 _endOfLine,
                 _endOfLine,
                 MakeNullableDirective(K.RestoreKeyword),
-                MakeEndRegionDirective(mixin),
-                _endOfLine
+                MakeEndRegionDirective(mixin)
             );
     }
 
