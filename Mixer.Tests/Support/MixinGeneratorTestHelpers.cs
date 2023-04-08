@@ -92,7 +92,7 @@ internal static class MixinGeneratorTestHelpers
         if (compilation.GetDiagnostics() is { Length: > 0 } diagnostics)
             return new(diagnostics);
 
-        var result = RunMixinGenerator(compilation);
+        var result = RunMixinGenerator(compilation, version);
 
         return new(result);
     }
@@ -116,10 +116,12 @@ internal static class MixinGeneratorTestHelpers
         return CSharpCompilation.Create(name, trees, MetadataReferences, options);
     }
 
-    private static GeneratorRunResult RunMixinGenerator(CSharpCompilation compilation)
+    private static GeneratorRunResult
+        RunMixinGenerator(CSharpCompilation compilation, LanguageVersion version)
     {
         return CSharpGeneratorDriver
             .Create(new MixinGenerator().AsSourceGenerator())
+            .WithUpdatedParseOptions(new CSharpParseOptions(version))
             .RunGenerators(compilation)
             .GetRunResult()
             .Results
