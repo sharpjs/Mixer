@@ -47,7 +47,7 @@ public class GenericTargetTests
             }
 
             #nullable restore
-            #endregion Source
+            #endregion
 
             """
         });
@@ -100,7 +100,7 @@ public class GenericTargetTests
             }
 
             #nullable restore
-            #endregion Source
+            #endregion
 
             """
         });

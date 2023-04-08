@@ -37,7 +37,7 @@ public class InGlobalNamespace
             }
 
             #nullable restore
-            #endregion Source
+            #endregion
 
             """
         });

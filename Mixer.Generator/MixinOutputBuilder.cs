@@ -405,12 +405,8 @@ internal readonly ref struct MixinOutputBuilder
     {
         return Trivia(EndRegionDirectiveTrivia(
             Token(K.HashToken),
-            TokenAndSpace(K.EndRegionKeyword),
-            Token(
-                TriviaList(PreprocessingMessage(mixin.Type.Name)),
-                K.EndOfDirectiveToken,
-                OneEndOfLine()
-            ),
+            Token(K.EndRegionKeyword),
+            Token(default, K.EndOfDirectiveToken, OneEndOfLine()),
             isActive: true
         ));
     }
