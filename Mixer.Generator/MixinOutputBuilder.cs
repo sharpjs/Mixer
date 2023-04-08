@@ -205,7 +205,7 @@ internal readonly ref struct MixinOutputBuilder
 
         return RecordDeclaration(
             kind:                 declarationKind,
-            attributeLists:       default,
+            attributeLists:       content.AttributeLists,
             modifiers:            TokenList(TokenAndSpace(K.PartialKeyword)),
             keyword:              TokenAndSpace(K.RecordKeyword),
             classOrStructKeyword: TokenAndSpace(keywordKind),
@@ -400,7 +400,7 @@ internal readonly ref struct MixinOutputBuilder
                 OneEndOfLine()
             ),
             isActive: true
-        ));;
+        ));
     }
 
     private SyntaxTrivia MakeEndRegionDirective(Mixin mixin)
