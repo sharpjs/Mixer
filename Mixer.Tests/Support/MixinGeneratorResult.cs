@@ -22,9 +22,9 @@ internal readonly ref struct MixinGeneratorResult
     /// </param>
     public MixinGeneratorResult(ImmutableArray<Diagnostic> diagnostics)
     {
+        Exception        = null;
         Diagnostics      = Format(diagnostics);
         GeneratedSources = ImmutableDictionary<string, string>.Empty;
-        Exception        = null;
     }
 
     /// <summary>
@@ -36,10 +36,19 @@ internal readonly ref struct MixinGeneratorResult
     /// </param>
     public MixinGeneratorResult(GeneratorRunResult result)
     {
+        Exception        =        result.Exception;
         Diagnostics      = Format(result.Diagnostics);
         GeneratedSources = Format(result.GeneratedSources);
-        Exception        = result.Exception;
     }
+
+    /// <summary>
+    ///   Gets the exception thrown by the generator, if any.
+    /// </summary>
+    /// <remarks>
+    ///   Returns <see langword="null"/> if the generator did not run or did
+    ///   not throw an exception.
+    /// </remarks>
+    public Exception? Exception { get; }
 
     /// <summary>
     ///   Gets the diagnostics produced by the compilation or generator.
@@ -55,15 +64,6 @@ internal readonly ref struct MixinGeneratorResult
     /// </remarks>
     public ImmutableDictionary<string, string> GeneratedSources { get; }
 
-    /// <summary>
-    ///   Gets the exception thrown by the generator, if any.
-    /// </summary>
-    /// <remarks>
-    ///   Returns <see langword="null"/> if the generator did not run or did
-    ///   not throw an exception.
-    /// </remarks>
-    public Exception? Exception { get; }
-
     private static ImmutableArray<string>
         Format(ImmutableArray<Diagnostic> diagnostics)
     {
@@ -78,15 +78,15 @@ internal readonly ref struct MixinGeneratorResult
 
     public void ShouldBeDiagnostics(params string[] diagnostics)
     {
-        Diagnostics     .Should().BeEquivalentTo(diagnostics);
         Exception       .Should().BeNull();
+        Diagnostics     .Should().BeEquivalentTo(diagnostics);
         GeneratedSources.Should().BeEmpty();
     }
 
     public void ShouldBeGeneratedSources(Sources sources)
     {
-        Diagnostics     .Should().BeEmpty();
         Exception       .Should().BeNull();
+        Diagnostics     .Should().BeEmpty();
         GeneratedSources.Should().BeEquivalentTo(sources);
     }
 }
