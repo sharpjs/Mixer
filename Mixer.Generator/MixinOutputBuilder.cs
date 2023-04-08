@@ -105,11 +105,11 @@ internal readonly ref struct MixinOutputBuilder
             modifiers:        default,
             namespaceKeyword: Token(MakePreambleTrivia(), K.NamespaceKeyword, TriviaList(Space)),
             name:             name.WithTrailingTrivia(Space),
-            openBraceToken:   Token(default, K.CloseBraceToken, TriviaList(_endOfLine)),
+            openBraceToken:   Token(default, K.OpenBraceToken, TriviaList(_endOfLine)),
             externs:          default,
             usings:           default,
             members:          List(members),
-            closeBraceToken:  Token(default, K.OpenBraceToken, TriviaList(_endOfLine)),
+            closeBraceToken:  Token(default, K.CloseBraceToken, TriviaList(_endOfLine)),
             semicolonToken:   default
         );
     }
