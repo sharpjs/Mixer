@@ -57,7 +57,7 @@ Install [this NuGet Package](https://www.nuget.org/packages/Mixer) in your proje
 
 ## Usage
 
-To make a class, structure, or record become includable (i.e. a *mixin*), add
+To make a class, struct, or record become includable (i.e. a *mixin*), add
 the `[Mixin]` attribute to it.
 
 ```
@@ -67,7 +67,7 @@ using Mixer;
 internal class MyMixin { ... }
 ```
 
-To include the mixin into some other class, structure, or record (i.e. a target
+To include the mixin into some other class, struct, or record (i.e. a target
 type), make the target type `partial` and add the `[Include]` attribute to it.
 Mixer provides both generic and non-generic versions of this attribute.
 
