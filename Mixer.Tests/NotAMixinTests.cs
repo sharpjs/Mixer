@@ -14,12 +14,10 @@ public class NotAMixinTests
             "using Mixer; namespace Test; [Include<NotAMixin>] class Target { }"
         );
 
-        result.Diagnostics.Should().BeEquivalentTo(
+        result.ShouldBeDiagnostics(
             "(1,31): error MIX0001: " +
                 "Cannot include 'NotAMixin' because it is not a mixin. " +
                 "Mixins must be marked with [Mixin]."
         );
-
-        result.GeneratedSources.Should().BeEmpty();
     }
 }

@@ -14,9 +14,7 @@ public class BaselineTests
             "using Mixer; namespace Test; [Include(typeof(Source))] class Target { }"
         );
 
-        result.Diagnostics.Should().BeEmpty();
-
-        result.GeneratedSources.Should().BeEquivalentTo(new Sources
+        result.ShouldBeGeneratedSources(new()
         {
             ["Test.Target.0.g.cs"] =
             """
@@ -50,9 +48,7 @@ public class BaselineTests
             "using Mixer; namespace Test { [Include<Source>] class Target { } }"
         );
 
-        result.Diagnostics.Should().BeEmpty();
-
-        result.GeneratedSources.Should().BeEquivalentTo(new Sources
+        result.ShouldBeGeneratedSources(new()
         {
             ["Test.Target.1.g.cs"] =
             """

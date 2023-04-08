@@ -75,4 +75,18 @@ internal readonly ref struct MixinGeneratorResult
     {
         return sources.ToImmutableDictionary(s => s.HintName, s => s.SourceText.ToString());
     }
+
+    public void ShouldBeDiagnostics(params string[] diagnostics)
+    {
+        Diagnostics     .Should().BeEquivalentTo(diagnostics);
+        Exception       .Should().BeNull();
+        GeneratedSources.Should().BeEmpty();
+    }
+
+    public void ShouldBeGeneratedSources(Sources sources)
+    {
+        Diagnostics     .Should().BeEmpty();
+        Exception       .Should().BeNull();
+        GeneratedSources.Should().BeEquivalentTo(sources);
+    }
 }

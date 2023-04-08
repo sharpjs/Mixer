@@ -23,9 +23,7 @@ public class GenericTargetTests
             """
         );
 
-        result.Diagnostics.Should().BeEmpty();
-
-        result.GeneratedSources.Should().BeEquivalentTo(new Sources
+        result.ShouldBeGeneratedSources(new()
         {
             ["Test.Target{T0,T1}.1.g.cs"] =
             """
@@ -72,9 +70,7 @@ public class GenericTargetTests
             """
         );
 
-        result.Diagnostics.Should().BeEmpty();
-
-        result.GeneratedSources.Should().BeEquivalentTo(new Sources
+        result.ShouldBeGeneratedSources(new()
         {
             ["Test.Target{T0,T1}.1.g.cs"] =
             """
