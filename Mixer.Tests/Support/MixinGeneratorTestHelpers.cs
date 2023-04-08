@@ -34,7 +34,7 @@ internal static class MixinGeneratorTestHelpers
     /// <summary>
     ///   Runs <see cref="MixinGenerator"/> on a compilation of the specified
     ///   sources using the specified C# language version with nullable
-    ///   analysis enabled.
+    ///   analysis enabled if supported by the language version.
     /// </summary>
     /// <param name="version">
     ///   The C# language version to use.
@@ -47,7 +47,7 @@ internal static class MixinGeneratorTestHelpers
     /// </returns>
     internal static MixinGeneratorResult
         RunMixinGenerator(LanguageVersion version, params string[] sources)
-        => RunMixinGenerator(version, Nullable.Enable, sources);
+        => RunMixinGenerator(version, NullableEnableIfSupported(version), sources);
 
     /// <summary>
     ///   Runs <see cref="MixinGenerator"/> on a compilation of the specified
@@ -152,4 +152,7 @@ internal static class MixinGeneratorTestHelpers
 
     private static MetadataReference MakeReference(Assembly assembly)
         => MetadataReference.CreateFromFile(assembly.Location);
+
+    private static Nullable NullableEnableIfSupported(LanguageVersion version)
+        => version.SupportsNullableAnalysis() ? Nullable.Enable : Nullable.Disable;
 }
