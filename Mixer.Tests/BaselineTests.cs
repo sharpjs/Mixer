@@ -46,13 +46,13 @@ public class BaselineTests
 
             namespace Test
             {
-            #region Source
+                #region Source
 
-            partial class Target
-            {
-            }
+                partial class Target
+                {
+                }
 
-            #endregion
+                #endregion
             }
 
             """
@@ -101,15 +101,15 @@ public class BaselineTests
 
             namespace Test
             {
-            #region Source
-            #nullable enable
+                #region Source
+                #nullable enable
 
-            partial class Target
-            {
-            }
+                partial class Target
+                {
+                }
 
-            #nullable restore
-            #endregion
+                #nullable restore
+                #endregion
             }
 
             """

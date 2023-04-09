@@ -4,7 +4,7 @@
 namespace Mixer;
 
 [TestFixture]
-public class InGlobalNamespace
+public class InGlobalNamespaceTests
 {
     [Test]
     public void Test()

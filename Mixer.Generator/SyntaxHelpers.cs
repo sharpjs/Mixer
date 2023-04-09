@@ -183,4 +183,22 @@ internal static class SyntaxHelpers
 
         array.Add(node);
     }
+
+    public static ImmutableArray<T> AddLeadingTrivia<T>(
+        this ImmutableArray<T> nodes,
+        SyntaxTriviaList       trivia)
+        where T : SyntaxNode
+    {
+        return nodes.Any()
+            ? nodes.SetItem(0, nodes[0].AddLeadingTrivia(trivia))
+            : nodes;
+    }
+
+    public static T AddLeadingTrivia<T>(this T node, SyntaxTriviaList trivia)
+        where T : SyntaxNode
+    {
+        return node.WithLeadingTrivia(
+            trivia.AddRange(node.GetLeadingTrivia())
+        );
+    }
 }
