@@ -346,17 +346,22 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
     public override SyntaxNode? VisitAttributeList(AttributeListSyntax node)
     {
+        var mixinMarkerIndex = IsMixinDeclaration
+            ? node.Attributes.IndexOf(IsMixinMarker)
+            : -1;
+
         node = (AttributeListSyntax) base.VisitAttributeList(node)!;
 
-        // Attribute list should disappear if all of its attributes disappear
-        return node.Attributes.Any() ? node : null;
-    }
+        if (mixinMarkerIndex < 0)
+            // No mixin marker to remove
+            return node;
 
-    public override SyntaxNode? VisitAttribute(AttributeSyntax node)
-    {
-        return IsMixinDeclaration && IsMixinMarker(node)
-            ? null // disappears
-            : base.VisitAttribute(node);
+        if (node.Attributes.Count == 1)
+            // Entire attribute list disappears
+            return null;
+
+        // Remove mixin marker from attribute list
+        return node.WithAttributes(node.Attributes.RemoveAt(mixinMarkerIndex));
     }
 
     public override SyntaxNode? VisitBaseList(BaseListSyntax node)
