@@ -164,15 +164,15 @@ internal ref struct MixinOutputBuilder
     private TypeDeclarationSyntax RenderMixinToClass(TypeDeclarationSyntax content)
     {
         return ClassDeclaration(
-            attributeLists:    content.AttributeLists,
+            attributeLists:    Normalize(content.AttributeLists),
             modifiers:         TokenList(Token(IndentationList(), K.PartialKeyword, OneSpace())),
             keyword:           TokenAndSpace(K.ClassKeyword),
             identifier:        RenderTargetIdentifier(),
             typeParameterList: RenderTypeParameterList(),
-            baseList:          content.BaseList,
+            baseList:          Normalize(content.BaseList),
             constraintClauses: RenderConstraintClauses(),
             openBraceToken:    Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
-            members:           content.Members,
+            members:           Normalize(content.Members),
             closeBraceToken:   Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
             semicolonToken:    default
         );
@@ -181,15 +181,15 @@ internal ref struct MixinOutputBuilder
     private TypeDeclarationSyntax RenderMixinToStruct(TypeDeclarationSyntax content)
     {
         return StructDeclaration(
-            attributeLists:    content.AttributeLists,
+            attributeLists:    Normalize(content.AttributeLists),
             modifiers:         TokenList(Token(IndentationList(), K.PartialKeyword, OneSpace())),
             keyword:           TokenAndSpace(K.StructKeyword),
             identifier:        RenderTargetIdentifier(),
             typeParameterList: RenderTypeParameterList(),
-            baseList:          content.BaseList,
+            baseList:          Normalize(content.BaseList),
             constraintClauses: RenderConstraintClauses(),
             openBraceToken:    Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
-            members:           content.Members,
+            members:           Normalize(content.Members),
             closeBraceToken:   Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
             semicolonToken:    default
         );
@@ -203,20 +203,32 @@ internal ref struct MixinOutputBuilder
 
         return RecordDeclaration(
             kind:                 declarationKind,
-            attributeLists:       content.AttributeLists,
+            attributeLists:       Normalize(content.AttributeLists),
             modifiers:            TokenList(Token(IndentationList(), K.PartialKeyword, OneSpace())),
             keyword:              TokenAndSpace(K.RecordKeyword),
             classOrStructKeyword: TokenAndSpace(keywordKind),
             identifier:           RenderTargetIdentifier(),
             typeParameterList:    RenderTypeParameterList(),
             parameterList:        default,
-            baseList:             content.BaseList,
+            baseList:             Normalize(content.BaseList),
             constraintClauses:    RenderConstraintClauses(),
             openBraceToken:       Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
-            members:              content.Members,
+            members:              Normalize(content.Members),
             closeBraceToken:      Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
             semicolonToken:       default
         );
+    }
+
+    private T? Normalize<T>(T? node)
+        where T : SyntaxNode
+    {
+        return node is null ? null : new SpaceNormalizer().Normalize(node, _indent);
+    }
+
+    private SyntaxList<T> Normalize<T>(SyntaxList<T> nodes)
+        where T : SyntaxNode
+    {
+        return new SpaceNormalizer().Normalize(nodes, _indent);
     }
 
     private SyntaxToken RenderTargetIdentifier()
