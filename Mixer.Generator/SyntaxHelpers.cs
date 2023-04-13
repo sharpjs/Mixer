@@ -162,18 +162,6 @@ internal static class SyntaxHelpers
         return SeparatedList<TTarget>(array.MoveToImmutable());
     }
 
-    public static TypeConstraintSyntax NotNullConstraint()
-    {
-        return TypeConstraint(IdentifierName("notnull"));
-    }
-
-    public static TypeConstraintSyntax UnmanagedConstraint()
-    {
-        return TypeConstraint(IdentifierName(
-            Identifier(default, SyntaxKind.UnmanagedKeyword, "unmanaged", "unmanaged", default)
-        ));
-    }
-
     public static void AddCommaSeparated(
         this ImmutableArray<SyntaxNodeOrToken>.Builder array,
         SyntaxNode                                     node)
@@ -200,5 +188,23 @@ internal static class SyntaxHelpers
         return node.WithLeadingTrivia(
             trivia.AddRange(node.GetLeadingTrivia())
         );
+    }
+
+    /// <summary>
+    ///   Creates a new <see langword="notnull"/> type constraint.
+    /// </summary>
+    public static TypeConstraintSyntax NotNullConstraint()
+    {
+        return TypeConstraint(IdentifierName("notnull"));
+    }
+
+    /// <summary>
+    ///   Creates a new <see langword="unmanaged"/> type constraint.
+    /// </summary>
+    public static TypeConstraintSyntax UnmanagedConstraint()
+    {
+        return TypeConstraint(IdentifierName(
+            Identifier(default, SyntaxKind.UnmanagedKeyword, "unmanaged", "unmanaged", default)
+        ));
     }
 }

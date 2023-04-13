@@ -379,7 +379,7 @@ internal ref struct MixinOutputBuilder
             .WithTrailingTrivia(
                 _endOfLine,
                 _endOfLine,
-                MakeEndRegionDirective(mixin)
+                MakeEndRegionDirective()
             );
     }
 
@@ -399,7 +399,7 @@ internal ref struct MixinOutputBuilder
                 _endOfLine,
                 _endOfLine,
                 MakeNullableDirective(K.RestoreKeyword),
-                MakeEndRegionDirective(mixin)
+                MakeEndRegionDirective()
             );
     }
 
@@ -417,7 +417,7 @@ internal ref struct MixinOutputBuilder
         ));
     }
 
-    private SyntaxTrivia MakeEndRegionDirective(Mixin mixin)
+    private SyntaxTrivia MakeEndRegionDirective()
     {
         return Trivia(EndRegionDirectiveTrivia(
             Token(IndentationList(), K.HashToken, default),
