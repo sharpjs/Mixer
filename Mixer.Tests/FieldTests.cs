@@ -4,7 +4,7 @@
 namespace Mixer;
 
 [TestFixture]
-public class BaseListTests
+public class FieldTests
 {
     [Test]
     public void Simple()
@@ -12,14 +12,17 @@ public class BaseListTests
         var result = RunMixinGenerator(
             """
             using Mixer;
+            #pragma warning disable CS0649 // Field '...' is never assigned to
 
             namespace Test;
 
-            class Foo { }
-            interface IBar { }
+            class Thing { }
 
             [Mixin]
-            class Source : Foo, IBar { }
+            class Source
+            {
+                public Thing? TheThing;
+            }
             """,
             """
             using Mixer;
@@ -46,8 +49,9 @@ public class BaseListTests
             #nullable enable
 
             partial class Target
-                : global::Test.Foo, global::Test.IBar
             {
+                [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
+                public global::Test.Thing? TheThing;
             }
 
             #nullable restore
@@ -58,7 +62,7 @@ public class BaseListTests
     }
 
     [Test]
-    public void ClosedGeneric()
+    public void Constant()
     {
         var result = RunMixinGenerator(
             """
@@ -66,11 +70,11 @@ public class BaseListTests
 
             namespace Test;
 
-            interface IFoo<T0, T1> { }
-            class Bar { }
-
             [Mixin]
-            class Source : IFoo<int, Bar> { }
+            class Source
+            {
+                public const int TheNumber = 42;
+            }
             """,
             """
             using Mixer;
@@ -97,8 +101,9 @@ public class BaseListTests
             #nullable enable
 
             partial class Target
-                : global::Test.IFoo<int, global::Test.Bar>
             {
+                [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
+                public const int TheNumber = 42;
             }
 
             #nullable restore
@@ -109,7 +114,7 @@ public class BaseListTests
     }
 
     [Test]
-    public void OpenGeneric()
+    public void Static()
     {
         var result = RunMixinGenerator(
             """
@@ -117,23 +122,24 @@ public class BaseListTests
 
             namespace Test;
 
-            interface IFoo<T0, T1> { }
-            class Bar { }
+            class Thing { }
 
             [Mixin]
-            class Source<T0, T1> : IFoo<T0, T1> { }
+            class Source
+            {
+                public static readonly Thing TheThing = new();
+            }
             """,
             """
             using Mixer;
 
             namespace Test;
 
-            [Include<Source<int, Bar>>]
+            [Include<Source>]
             partial class Target { }
             """
         );
 
-        // TODO: Should use keyword `int` instead of type name.
         result.ShouldBeGeneratedSources(new()
         {
             ["Test.Target.1.g.cs"] =
@@ -149,8 +155,9 @@ public class BaseListTests
             #nullable enable
 
             partial class Target
-                : global::Test.IFoo<global::System.Int32, global::Test.Bar>
             {
+                [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
+                public static readonly global::Test.Thing TheThing = new();
             }
 
             #nullable restore
