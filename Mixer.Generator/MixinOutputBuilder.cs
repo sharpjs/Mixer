@@ -219,16 +219,21 @@ internal ref struct MixinOutputBuilder
         );
     }
 
-    private T? Normalize<T>(T? node)
-        where T : SyntaxNode
+    private BaseListSyntax? Normalize(BaseListSyntax? baseList)
     {
-        return node is null ? null : new SpaceNormalizer().Normalize(node, _indent);
+        return baseList is null
+            ? null
+            : new SpaceNormalizer().Normalize(baseList, _indent + 4);
     }
 
-    private SyntaxList<T> Normalize<T>(SyntaxList<T> nodes)
-        where T : SyntaxNode
+    private SyntaxList<AttributeListSyntax> Normalize(SyntaxList<AttributeListSyntax> attributeLists)
     {
-        return new SpaceNormalizer().Normalize(nodes, _indent);
+        return new SpaceNormalizer().Normalize(attributeLists, _indent);
+    }
+
+    private SyntaxList<MemberDeclarationSyntax> Normalize(SyntaxList<MemberDeclarationSyntax> members)
+    {
+        return new SpaceNormalizer().Normalize(members, _indent + 4);
     }
 
     private SyntaxToken RenderTargetIdentifier()
@@ -440,7 +445,7 @@ internal ref struct MixinOutputBuilder
     }
 
     private int Indent()
-        => _indent++;
+        => _indent += IndentSize;
 
     private void Restore(int level)
         => _indent = level;
@@ -449,7 +454,7 @@ internal ref struct MixinOutputBuilder
         => _indent > 0 ? TriviaList(Indentation()) : default;
 
     private SyntaxTrivia Indentation()
-        => _indent > 0 ? Whitespace(new string(' ', _indent * 4)) : default;
+        => _indent > 0 ? Whitespace(new string(' ', _indent)) : default;
 
     private SyntaxTriviaList OneEndOfLine()
         => TriviaList(_endOfLine);

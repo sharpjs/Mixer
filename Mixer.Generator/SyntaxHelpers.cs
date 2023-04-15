@@ -14,6 +14,20 @@ internal static class SyntaxHelpers
 {
     public const string TargetTypeNamePlaceholder = "$This";
 
+    /// <summary>
+    ///   Gets visual size of an indent level in characters.
+    /// </summary>
+    /// <remarks>
+    ///   This code assumes that the developer prefers a virtual tab stop every
+    ///   four columns indented with spaces, not tabs, as is common practice in
+    ///   the C# community.  It is beyond the scope of this generator to honor
+    ///   alternative preferences, per the guidance
+    ///   <a href="https://stackoverflow.com/questions/67351269/can-a-roslyn-source-generator-discover-the-ides-spacing-etc-preferences">here</a>
+    ///   and
+    ///   <a href="https://github.com/dotnet/roslyn/issues/53020">here</a>.
+    /// </remarks>
+    public const int IndentSize = 4;
+
     private static IdentifierNameSyntax Global()
         => IdentifierName(Token(SyntaxKind.GlobalKeyword));
 
