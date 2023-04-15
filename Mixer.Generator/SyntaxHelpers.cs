@@ -28,6 +28,12 @@ internal static class SyntaxHelpers
     /// </remarks>
     public const int IndentSize = 4;
 
+    public static bool IsNone(this SyntaxTrivia trivia)
+        => trivia.IsKind(SyntaxKind.None);
+
+    public static bool IsSome(this SyntaxTrivia trivia)
+        => !trivia.IsKind(SyntaxKind.None);
+
     private static IdentifierNameSyntax Global()
         => IdentifierName(Token(SyntaxKind.GlobalKeyword));
 

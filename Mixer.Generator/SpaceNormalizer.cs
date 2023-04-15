@@ -7,7 +7,7 @@ using static Math;
 using static MathEx;
 
 /// <summary>
-///   A C# syntax rewriter that normalizes indentation and newlines.
+///   A C# syntax rewriter that normalizes indentation and line endings.
 /// </summary>
 internal class SpaceNormalizer : CSharpSyntaxRewriter
 {
@@ -33,17 +33,64 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         _endOfLine = GetPlatformEndOfLine();
     }
 
+    /// <summary>
+    ///   Normalizes the indentation and line endings of the specified node.
+    /// </summary>
+    /// <typeparam name="T">
+    ///   The type of <paramref name="node"/>.
+    /// </typeparam>
+    /// <param name="node">
+    ///   The node to normalize.
+    /// </param>
+    /// <param name="indent">
+    ///   The desired indentation, in columns.
+    /// </param>
+    /// <returns>
+    ///   <paramref name="node"/> shifted left or right so that it is indented
+    ///   by <paramref name="indent"/> columns, and with line endings replaced
+    ///   by the platform's preferred line ending.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///   <paramref name="indent"/> is negative.
+    /// </exception>
     public T Normalize<T>(T node, int indent)
         where T : SyntaxNode
     {
+        if (indent < 0)
+            throw new ArgumentOutOfRangeException(nameof(indent));
+
         Reset(node, indent);
 
         return (T) Visit(node)!;
     }
 
+    /// <summary>
+    ///   Normalizes the indentation and line endings of each node in the
+    ///   specified list.
+    /// </summary>
+    /// <typeparam name="T">
+    ///   The type of element in <paramref name="nodes"/>.
+    /// </typeparam>
+    /// <param name="nodes">
+    ///   The list of nodes to normalize.
+    /// </param>
+    /// <param name="indent">
+    ///   The desired indentation, in columns.
+    /// </param>
+    /// <returns>
+    ///   <paramref name="nodes"/>, each shifted left or right so that it is
+    ///   indented by <paramref name="indent"/> columns, and each with line
+    ///   endings replaced by the platform's preferred line ending.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///   <paramref name="indent"/> is negative.
+    /// </exception>
     public SyntaxList<T> Normalize<T>(SyntaxList<T> nodes, int indent)
         where T : SyntaxNode
     {
+        if (indent < 0)
+            throw new ArgumentOutOfRangeException(nameof(indent));
+
         if (!nodes.Any())
             return nodes;
 
@@ -54,20 +101,18 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
 
     private void Reset(SyntaxNode node, int indent)
     {
-        if (indent < 0)
-            throw new ArgumentOutOfRangeException(nameof(indent));
-
         _state = State.Initial;
         _shift = indent - DetectIndent(node);
     }
 
     public override SyntaxToken VisitToken(SyntaxToken token)
     {
-        // Replace the base implementation with one that synthesizes fake
-        // leading trivia to indent if the token does not have any.
+        var leadingTrivia = VisitLeadingTrivia(token.LeadingTrivia);
 
-        var leadingTrivia  = VisitListOrDefault(token.LeadingTrivia);
-        var trailingTrivia = VisitList         (token.TrailingTrivia);
+        if (token.Span.Length > 0)
+            _state = State.Interior; // due to the token itself
+
+        var trailingTrivia = VisitTrailingTrivia(token.TrailingTrivia);
 
         if (leadingTrivia != token.LeadingTrivia)
             token = token.WithLeadingTrivia(leadingTrivia);
@@ -78,33 +123,50 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         return token;
     }
 
-    private SyntaxTriviaList VisitListOrDefault(SyntaxTriviaList list)
+    private SyntaxTriviaList VisitLeadingTrivia(SyntaxTriviaList list)
     {
         if (list.Any())
-            return VisitList(list);
+            return VisitListCore(list);
 
-        // The token might occur at the start of a line but without any leading
-        // trivia.  In that case, visit a fake whitespace trivia to allow this
-        // rewriter a chance to synthesize any necessary indentation.
+        // The token might occur at the start of a line without any preceding
+        // whitespace trivia.  To handle that case, visit some imaginary
+        // preceding whitespace trivia to allow the rewriter a chance to
+        // synthesize any necessary indentation and update state.
+        var newTrivia = VisitWhitespaceTrivia();
 
-        var trivia = VisitWhitespaceTrivia(default);
-
-        return trivia == default
+        return newTrivia.IsKind(SyntaxKind.None)
             ? list
-            : TriviaList(trivia);
+            : TriviaList(newTrivia);
     }
 
-    public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
+    public SyntaxTriviaList VisitTrailingTrivia(SyntaxTriviaList list)
     {
-        return trivia.Kind() switch
-        {
-            SyntaxKind.WhitespaceTrivia => VisitWhitespaceTrivia(trivia),
-            SyntaxKind.EndOfLineTrivia  => VisitEndOfLineTrivia (trivia),
-            _                           => VisitOtherTrivia     (trivia),
-        };
+        if (list.Any())
+            return VisitListCore(list);
+
+        return list;
     }
 
-    private SyntaxTrivia VisitWhitespaceTrivia(SyntaxTrivia trivia)
+    private SyntaxTriviaList VisitListCore(SyntaxTriviaList list)
+    {
+        var editor = new SyntaxTriviaListEditor(list);
+
+        foreach (var oldTrivia in list)
+        {
+            var newTrivia = oldTrivia.Kind() switch
+            {
+                SyntaxKind.WhitespaceTrivia => VisitWhitespaceTrivia(oldTrivia),
+                SyntaxKind.EndOfLineTrivia  => VisitEndOfLineTrivia (oldTrivia),
+                _                           => VisitOtherTrivia     (oldTrivia, editor),
+            };
+
+            editor.Add(newTrivia, different: newTrivia != oldTrivia || oldTrivia.IsNone());
+        }
+
+        return editor.ToList();
+    }
+
+    private SyntaxTrivia VisitWhitespaceTrivia(SyntaxTrivia trivia = default)
     {
         // Do not care about space in line interior
         if (_state == State.Interior)
@@ -138,14 +200,21 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         return _endOfLine;
     }
 
-    private SyntaxTrivia VisitOtherTrivia(SyntaxTrivia trivia)
+    private SyntaxTrivia VisitOtherTrivia(SyntaxTrivia trivia, SyntaxTriviaListEditor collector)
     {
-        // Recurse into structured trivia
+        // Recurse into structured trivia to visit its leaf nodes
         if (trivia.HasStructure)
-            return base.VisitTrivia(trivia);
+            return VisitTrivia(trivia);
 
-        // Non-space trivia cannot be indentation; must be interior
-        _state = State.Interior;
+        // Other unstructured trivia might occur at the start of a line without
+        // any preceding whitespace trivia.  To handle that case, visit some
+        // imaginary preceding whitespace trivia to allow the rewriter a chance
+        // to synthesize any necessary indentation and update state.
+        var space = VisitWhitespaceTrivia();
+        collector.Add(space, different: space.IsSome());
+
+        // Other unstructured trivia is neither whitespace nor a newline, so
+        // there is no rewriting to do for it
         return trivia;
     }
 
@@ -158,28 +227,33 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
 
     private string GetSpace(int length)
     {
-        var spaces = EnsureSpaceCacheSlot(length);
-        return spaces[length] ??= new string(' ', length);
+        var cache = EnsureSpaceCacheSlot(length);
+        return cache[length] ??= new string(' ', length);
     }
 
     private string?[] EnsureSpaceCacheSlot(int index)
     {
+        if (_spaces is not { } spaces)
+            return _spaces = CreateSpaceCache(index + 1);
+        else if (spaces.Length <= index)
+            return _spaces = GrowSpaceCache(spaces, index + 1);
+        else
+            return spaces;
+    }
+
+    private string?[] CreateSpaceCache(int size)
+    {
         const int MinimumLength = 4;
 
-        if (_spaces is not { } spaces)
-        {
-            spaces = new string?[GetSpaceCacheSize(index + 1, MinimumLength)];
-            return _spaces = spaces;
-        }
-        else if (spaces.Length <= index)
-        {
-            Array.Resize(ref spaces, GetSpaceCacheSize(index, spaces.Length * 2));
-            return _spaces = spaces;
-        }
-        else
-        {
-            return spaces;
-        }
+        size = GetSpaceCacheSize(size, MinimumLength);
+        return new string?[size];
+    }
+
+    private string?[] GrowSpaceCache(string?[] cache, int size)
+    {
+        size = GetSpaceCacheSize(size, cache.Length * 2);
+        Array.Resize(ref cache, size);
+        return cache;
     }
 
     private static int GetSpaceCacheSize(int requested, int minimum)
