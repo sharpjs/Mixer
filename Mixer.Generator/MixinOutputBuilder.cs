@@ -223,7 +223,7 @@ internal ref struct MixinOutputBuilder
     {
         return baseList is null
             ? null
-            : new SpaceNormalizer().Normalize(baseList, _indent + 4);
+            : new SpaceNormalizer().Normalize(baseList, _indent + IndentSize);
     }
 
     private SyntaxList<AttributeListSyntax> Normalize(SyntaxList<AttributeListSyntax> attributeLists)
@@ -233,7 +233,7 @@ internal ref struct MixinOutputBuilder
 
     private SyntaxList<MemberDeclarationSyntax> Normalize(SyntaxList<MemberDeclarationSyntax> members)
     {
-        return new SpaceNormalizer().Normalize(members, _indent + 4);
+        return new SpaceNormalizer().Normalize(members, _indent + IndentSize);
     }
 
     private SyntaxToken RenderTargetIdentifier()
