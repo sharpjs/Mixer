@@ -238,11 +238,9 @@ internal ref struct MixinOutputBuilder
 
     private SyntaxToken RenderTargetIdentifier()
     {
-        return Identifier(
-            default,
-            _targetType.Name,
-            _targetType.Arity == 0 ? OneEndOfLine() : default
-        );
+        var trailingTrivia = _targetType.Arity != 0 ? default : OneEndOfLine();
+
+        return Identifier(default, _targetType.Name, trailingTrivia);
     }
 
     private TypeParameterListSyntax? RenderTypeParameterList()
