@@ -27,13 +27,19 @@ internal static class SyntaxHelpers
         => QualifiedName(lhs, IdentifierName(name));
 
     public static NameSyntax Qualify(ISymbol symbol, string? alias = "global")
-    // <: AliasQualifiedNameSyntax | QualifiedNameSyntax
+    // return: AliasQualifiedNameSyntax | QualifiedNameSyntax
     {
-        return Qualify(symbol, IdentifierName(symbol.Name), alias);
+        return QualifyCore(symbol, IdentifierName(symbol.Name), alias);
     }
 
     public static NameSyntax Qualify(ISymbol symbol, SimpleNameSyntax name, string? alias = "global")
-    // <: AliasQualifiedNameSyntax | QualifiedNameSyntax
+    // return: AliasQualifiedNameSyntax | QualifiedNameSyntax
+    {
+        return QualifyCore(symbol, name.WithoutTrivia(), alias).WithTriviaFrom(name);
+    }
+
+    public static NameSyntax QualifyCore(ISymbol symbol, SimpleNameSyntax name, string? alias = "global")
+    // return: AliasQualifiedNameSyntax | QualifiedNameSyntax
     {
         for (;;)
         {
