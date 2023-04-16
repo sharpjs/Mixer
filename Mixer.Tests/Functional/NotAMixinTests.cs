@@ -7,7 +7,7 @@ namespace Mixer;
 public class NotAMixinTests
 {
     [Test]
-    public void English()
+    public void English2()
     {
         var result = RunMixinGenerator(
             """
