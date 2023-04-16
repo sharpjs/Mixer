@@ -22,6 +22,7 @@ public class MixinGenerator : IIncrementalGenerator
         => SymbolEqualityComparer.Default;
 
     /// <inheritdoc/>
+    [ExcludeFromCodeCoverage] // Coverlet (erroneously?) thinks there are uncovered branches
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Discover language version
