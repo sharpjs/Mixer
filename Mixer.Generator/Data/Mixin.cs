@@ -122,7 +122,7 @@ internal readonly struct Mixin
         if (type.HasTypeParameters())
             throw new ArgumentException("Type must be a non-generic or closed generic type.", nameof(type));
         if (!type.IsConstructedFrom(Type))
-            throw new ArgumentException("Type must be constructed from from the mixin type.", nameof(type));
+            throw new ArgumentException("Type must be constructed from the mixin type.", nameof(type));
 
         return new(type, ContentReference, NullableContext);
     }

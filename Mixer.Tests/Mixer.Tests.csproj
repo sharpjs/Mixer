@@ -27,6 +27,8 @@
   <ItemGroup>
     <Using Include="Microsoft.CodeAnalysis" />
     <Using Include="Microsoft.CodeAnalysis.CSharp" />
+    <Using Include="Microsoft.CodeAnalysis.CSharp.SyntaxFactory" Static="true" />
+    <Using Include="System.Collections.Immutable" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(EmitCompilerGeneratedFiles)' == 'true'">
