@@ -9,7 +9,8 @@ public class BaseListTests
     [Test]
     public void Simple()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -53,7 +54,8 @@ public class BaseListTests
     [Test]
     public void ClosedGeneric()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -97,7 +99,8 @@ public class BaseListTests
     [Test]
     public void OpenGeneric()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 

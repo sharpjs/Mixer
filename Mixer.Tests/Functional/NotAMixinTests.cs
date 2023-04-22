@@ -9,11 +9,13 @@ public class NotAMixinTests
     [Test]
     public void English2()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithSourceAndTargetKinds(Class)
+        .WithInput(
             """
             using Mixer;
 
-            class NotAMixin { }
+            $source NotAMixin { }
 
             [Include<NotAMixin>]
             partial $target Target { }
@@ -30,11 +32,13 @@ public class NotAMixinTests
     [Test, SetUICulture("es-MX")]
     public void Spanish()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithSourceAndTargetKinds(Class)
+        .WithInput(
             """
             using Mixer;
 
-            class NotAMixin { }
+            $source NotAMixin { }
 
             [Include<NotAMixin>]
             partial $target Target { }

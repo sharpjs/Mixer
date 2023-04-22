@@ -9,7 +9,8 @@ public class NestedTypeTests
     [Test]
     public void Class()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -60,7 +61,8 @@ public class NestedTypeTests
     [Test]
     public void Struct()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -111,7 +113,8 @@ public class NestedTypeTests
     [Test]
     public void Interface()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -162,7 +165,8 @@ public class NestedTypeTests
     [Test]
     public void RecordClass()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -215,7 +219,8 @@ public class NestedTypeTests
     [Test]
     public void RecordStruct()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -266,7 +271,8 @@ public class NestedTypeTests
     [Test]
     public void Delegate()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -313,7 +319,8 @@ public class NestedTypeTests
     [Test]
     public void Enum()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 

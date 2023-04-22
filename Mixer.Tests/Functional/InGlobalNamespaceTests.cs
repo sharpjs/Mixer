@@ -9,7 +9,8 @@ public class InGlobalNamespaceTests
     [Test]
     public void Test()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             [Mixer.Mixin]
             $source Source { }

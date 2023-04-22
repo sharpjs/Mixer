@@ -9,7 +9,8 @@ public class EventTests
     [Test]
     public void Simple()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using System;
             using Mixer;

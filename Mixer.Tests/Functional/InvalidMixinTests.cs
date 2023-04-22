@@ -9,7 +9,9 @@ public class InvalidMixinTests
     [Test]
     public void English()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithSourceAndTargetKinds(Class)
+        .WithInput(
             """
             using Mixer;
 
@@ -33,7 +35,9 @@ public class InvalidMixinTests
     [Test, SetUICulture("es-MX")]
     public void Spanish()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithSourceAndTargetKinds(Class)
+        .WithInput(
             """
             using Mixer;
 

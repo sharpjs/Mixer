@@ -9,7 +9,8 @@ public class GenericTargetTests
     [Test]
     public void SimpleGenericTarget()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -49,7 +50,8 @@ public class GenericTargetTests
     [Test]
     public void GenericTargetWithNamedTypeConstraints()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using System;
             using Mixer;

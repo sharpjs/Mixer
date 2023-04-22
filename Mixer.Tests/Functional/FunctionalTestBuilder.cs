@@ -20,8 +20,7 @@ internal partial class FunctionalTestBuilder
 
     private LanguageVersion        _languageVersion;
     private NullableContextOptions _nullableOptions;
-    private SourceOrTargetKinds    _sourceKinds;
-    private SourceOrTargetKinds    _targetKinds;
+    private string[]               _sourceAndTargetKinds;
 
     /// <summary>
     ///   Initializes a new <see cref="FunctionalTestBuilder"/> instance using
@@ -34,8 +33,7 @@ internal partial class FunctionalTestBuilder
         _expectedGeneratedSources = new();
         _languageVersion          = LanguageVersion.CSharp11;
         _nullableOptions          = NullableContextOptions.Enable;
-        _sourceKinds              = SourceOrTargetKinds.All;
-        _targetKinds              = SourceOrTargetKinds.All;
+        _sourceAndTargetKinds     = All;
     }
 
     /// <summary>
@@ -69,32 +67,17 @@ internal partial class FunctionalTestBuilder
     }
 
     /// <summary>
-    ///   Sets the kinds of sources to test.
+    ///   Sets the kinds of source and target types to test.
     /// </summary>
-    /// <param name="options">
-    ///   The source kinds to use.
+    /// <param name="kinds">
+    ///   The kinds of source and target types to test.
     /// </param>
     /// <returns>
     ///   The builder, to permit method chaining.
     /// </returns>
-    public FunctionalTestBuilder WithSourceKinds(SourceOrTargetKinds kinds)
+    public FunctionalTestBuilder WithSourceAndTargetKinds(params string[] kinds)
     {
-        _sourceKinds = kinds;
-        return this;
-    }
-
-    /// <summary>
-    ///   Sets the kinds of targets to test.
-    /// </summary>
-    /// <param name="options">
-    ///   The target kinds to use.
-    /// </param>
-    /// <returns>
-    ///   The builder, to permit method chaining.
-    /// </returns>
-    public FunctionalTestBuilder WithTargetKinds(SourceOrTargetKinds kinds)
-    {
-        _targetKinds = kinds;
+        _sourceAndTargetKinds = kinds;
         return this;
     }
 
@@ -151,34 +134,10 @@ internal partial class FunctionalTestBuilder
     /// </summary>
     public void Test()
     {
-        const int SourceOrTargetKindCount = 4;
-
-        for (var targetIndex = 0; targetIndex < SourceOrTargetKindCount; targetIndex++)
-        for (var sourceIndex = 0; sourceIndex < SourceOrTargetKindCount; sourceIndex++)
-            Test(sourceIndex, targetIndex);
+        foreach (var targetKind in _sourceAndTargetKinds)
+        foreach (var sourceKind in _sourceAndTargetKinds)
+            Test(sourceKind, targetKind);
     }
-
-    private void Test(int sourceIndex, int targetIndex)
-    {
-        if (!_sourceKinds.HasAny(1 << sourceIndex))
-            return;
-
-        if (!_targetKinds.HasAny(1 << targetIndex))
-            return;
-
-        var sourceKeywords = SourceOrTargetKindKeywords[sourceIndex];
-        var targetKeywords = SourceOrTargetKindKeywords[targetIndex];
-
-        Test(sourceKeywords, targetKeywords);
-    }
-
-    private static readonly string[] SourceOrTargetKindKeywords =
-    {
-                "class",
-         "record class",
-               "struct",
-        "record struct",
-    };
 
     private void Test(string sourceKind, string targetKind)
     {
@@ -206,7 +165,11 @@ internal partial class FunctionalTestBuilder
         return _inputs.Select(source => Parse(source, options, sourceKind, targetKind));
     }
 
-    private static SyntaxTree Parse(string source, CSharpParseOptions options, string sourceKind, string targetKind)
+    private static SyntaxTree Parse(
+        string             source,
+        CSharpParseOptions options,
+        string             sourceKind,
+        string             targetKind)
     {
         source = source.Replace(SourceKindPlaceholder, sourceKind);
         source = source.Replace(TargetKindPlaceholder, targetKind);
@@ -237,22 +200,23 @@ internal partial class FunctionalTestBuilder
             .Single();
     }
 
-    private void Assert(ImmutableArray<Diagnostic> diagnostics)
+    private void Assert(ImmutableArray<Diagnostic> diagnostics_)
     {
-        diagnostics
-            .Select(d => d.ToString())
-            .Should().BeEquivalentTo(_expectedDiagnostics);
+        var diagnostics = diagnostics_
+            .Select(d => d.ToString());
+
+        diagnostics.Should().BeEquivalentTo(_expectedDiagnostics);
     }
 
-    private void Assert(ImmutableArray<GeneratedSourceResult> generatedSources, string targetKind)
+    private void Assert(ImmutableArray<GeneratedSourceResult> generatedSources_, string targetKind)
     {
-        var actual = generatedSources
-            .Select(s => (s.HintName, s.SourceText.ToString()));
+        var generatedSources = generatedSources_
+            .ToDictionary(s => s.HintName, s => s.SourceText.ToString());
 
         var expected = _expectedGeneratedSources
-            .Select(s => (s.Name, s.Text.Replace(TargetKindPlaceholder, targetKind)));
+            .ToDictionary(s => s.Name, s => s.Text.Replace(TargetKindPlaceholder, targetKind));
 
-        actual.Should().BeEquivalentTo(expected);
+        generatedSources.Should().BeEquivalentTo(expected);
     }
 
     #region Metadata References

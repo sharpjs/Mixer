@@ -9,7 +9,8 @@ public class AttributeTests
     [Test]
     public void Simple()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using System;
             using Mixer;
@@ -54,7 +55,8 @@ public class AttributeTests
     [Test]
     public void SharedAttributeList()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using System;
             using Mixer;
@@ -98,7 +100,8 @@ public class AttributeTests
     [Test]
     public void MultiLineAttribute()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using System;
             using Mixer;

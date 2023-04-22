@@ -12,8 +12,7 @@ public class BaselineTests
         new FunctionalTestBuilder()
         .WithLanguageVersion(LanguageVersion.CSharp7)
         .WithNullableOptions(NullableContextOptions.Disable)
-        .WithSourceKinds(Class | Struct)
-        .WithTargetKinds(Class | Struct)
+        .WithSourceAndTargetKinds(Class, Struct)
         .WithInput(
             """
             using Mixer;
@@ -62,8 +61,7 @@ public class BaselineTests
 
         new FunctionalTestBuilder()
         .WithLanguageVersion(LanguageVersion.CSharp8)
-        .WithSourceKinds(Class | Struct)
-        .WithTargetKinds(Class | Struct)
+        .WithSourceAndTargetKinds(Class, Struct)
         .WithInput(
             """
             using Mixer;

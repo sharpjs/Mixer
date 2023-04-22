@@ -9,7 +9,8 @@ public class FieldTests
     [Test]
     public void Simple()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
             #pragma warning disable CS0649 // Field '...' is never assigned to
@@ -57,7 +58,8 @@ public class FieldTests
     [Test]
     public void Constant()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -102,7 +104,8 @@ public class FieldTests
     [Test]
     public void Static()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 

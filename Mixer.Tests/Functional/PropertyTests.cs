@@ -9,7 +9,8 @@ public class PropertyTests
     [Test]
     public void Simple()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 
@@ -56,7 +57,8 @@ public class PropertyTests
     [Test]
     public void ExplicitInterfaceImplementation()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
 

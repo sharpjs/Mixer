@@ -10,8 +10,7 @@ public class DestructorTests
     public void Simple()
     {
         new FunctionalTestBuilder()
-        .WithSourceKinds(Class | RecordClass)
-        .WithTargetKinds(Class | RecordClass)
+        .WithSourceAndTargetKinds(Class, RecordClass)
         .WithInput(
             """
             using Mixer;

@@ -9,7 +9,8 @@ public class MethodTests
     [Test]
     public void Simple()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithInput(
             """
             using Mixer;
             #pragma warning disable CS0067 // The event '...' is never used
