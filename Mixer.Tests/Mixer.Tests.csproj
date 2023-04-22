@@ -8,7 +8,6 @@
   <PropertyGroup>
     <Description>Test suite for Mixer</Description>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>Mixer</RootNamespace>
     <!-- Emit generated files in obj\Debug\net6.0\generated\Mixer.Generator\Mixer.MixinGenerator -->
     <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
   </PropertyGroup>
