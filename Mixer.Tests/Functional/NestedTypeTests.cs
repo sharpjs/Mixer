@@ -22,6 +22,8 @@ public class NestedTypeTests
                 internal class ThingDoer
                 {
                     public void DoTheThing() { }
+
+                    private class Helper { }
                 }
             }
 
@@ -48,6 +50,8 @@ public class NestedTypeTests
                 internal class ThingDoer
                 {
                     public void DoTheThing() { }
+
+                    private class Helper { }
                 }
             }
 
@@ -74,6 +78,8 @@ public class NestedTypeTests
                 private readonly ref struct ThingDoer
                 {
                     public void DoTheThing() { }
+
+                    private struct Helper { }
                 }
             }
 
@@ -100,6 +106,8 @@ public class NestedTypeTests
                 private readonly ref struct ThingDoer
                 {
                     public void DoTheThing() { }
+
+                    private struct Helper { }
                 }
             }
 
@@ -126,6 +134,8 @@ public class NestedTypeTests
                 public interface IThingDoer
                 {
                     void DoTheThing();
+
+                    public interface IHelper { }
                 }
             }
 
@@ -152,6 +162,8 @@ public class NestedTypeTests
                 public interface IThingDoer
                 {
                     void DoTheThing();
+
+                    public interface IHelper { }
                 }
             }
 
@@ -179,6 +191,9 @@ public class NestedTypeTests
                 //             ^^^^^ optional
                 {
                     public bool IsNamed => Name is { Length: > 0 };
+
+                    private record class InnerThing(string? InnerName);
+                    //             ^^^^^ optional
                 }
             }
 
@@ -206,6 +221,9 @@ public class NestedTypeTests
                 //             ^^^^^ optional
                 {
                     public bool IsNamed => Name is { Length: > 0 };
+
+                    private record class InnerThing(string? InnerName);
+                    //             ^^^^^ optional
                 }
             }
 
@@ -232,6 +250,8 @@ public class NestedTypeTests
                 private readonly record struct Thing(string? Name)
                 {
                     public bool IsNamed => Name is { Length: > 0 };
+
+                    private readonly record struct InnerThing(string? InnerName);
                 }
             }
 
@@ -258,6 +278,8 @@ public class NestedTypeTests
                 private readonly record struct Thing(string? Name)
                 {
                     public bool IsNamed => Name is { Length: > 0 };
+
+                    private readonly record struct InnerThing(string? InnerName);
                 }
             }
 

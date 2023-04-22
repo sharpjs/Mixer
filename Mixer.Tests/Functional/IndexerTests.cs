@@ -4,7 +4,7 @@
 namespace Mixer.Tests.Functional;
 
 [TestFixture]
-public class EventTests
+public class IndexerTests
 {
     [Test]
     public void Simple()
@@ -12,9 +12,7 @@ public class EventTests
         new FunctionalTestBuilder()
         .WithInput(
             """
-            using System;
             using Mixer;
-            #pragma warning disable CS0067 // The event '...' is never used
 
             namespace Test;
 
@@ -23,7 +21,7 @@ public class EventTests
             [Mixin]
             $source Source
             {
-                public event EventHandler? ItHappened;
+                public Thing this[int index] => new();
             }
 
             [Include<Source>]
@@ -46,7 +44,7 @@ public class EventTests
             partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                public event global::System.EventHandler? ItHappened;
+                public global::Test.Thing this[int index] => new();
             }
 
             #nullable restore
@@ -57,23 +55,22 @@ public class EventTests
     }
 
     [Test]
-    public void WithAccessors()
+    public void ExplicitInterfaceImplementation()
     {
         new FunctionalTestBuilder()
         .WithInput(
             """
-            using System;
             using Mixer;
-            #pragma warning disable CS0067 // The event '...' is never used
 
             namespace Test;
 
             class Thing { }
+            interface IHasThing { Thing this[int index] { get; } }
 
             [Mixin]
-            $source Source
+            $source Source : IHasThing
             {
-                public event EventHandler? ItHappened { add { } remove { } }
+                Thing IHasThing.this[int index] => new();
             }
 
             [Include<Source>]
@@ -94,9 +91,10 @@ public class EventTests
             #nullable enable
 
             partial $target Target
+                : global::Test.IHasThing
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                public event global::System.EventHandler? ItHappened { add { } remove { } }
+                global::Test.Thing global::Test.IHasThing.this[int index] => new();
             }
 
             #nullable restore

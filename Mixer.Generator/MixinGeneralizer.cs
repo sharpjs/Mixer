@@ -257,6 +257,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         return node;
     }
 
+    #if NOT_NEEDED // All accessor declarations are nested in property declarations
     public override SyntaxNode? VisitAccessorDeclaration(AccessorDeclarationSyntax node)
     {
         EnterDeclaration();
@@ -268,6 +269,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         LeaveDeclaration();
         return node;
     }
+    #endif
 
     public override SyntaxNode? VisitIndexerDeclaration(IndexerDeclarationSyntax node)
     {
