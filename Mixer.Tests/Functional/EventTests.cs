@@ -20,13 +20,13 @@ public class EventTests
             class Thing { }
 
             [Mixin]
-            class Source
+            $source Source
             {
                 public event EventHandler? ItHappened;
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -42,7 +42,7 @@ public class EventTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
                 public event global::System.EventHandler? ItHappened;

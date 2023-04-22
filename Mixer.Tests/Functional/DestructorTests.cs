@@ -9,7 +9,10 @@ public class DestructorTests
     [Test]
     public void Simple()
     {
-        new FunctionalTestBuilder().WithInput(
+        new FunctionalTestBuilder()
+        .WithSourceKinds(Class | RecordClass)
+        .WithTargetKinds(Class | RecordClass)
+        .WithInput(
             """
             using Mixer;
 
@@ -18,7 +21,7 @@ public class DestructorTests
             class Thing { }
 
             [Mixin]
-            class Source
+            $source Source
             {
                 ~Source()
                 {
@@ -27,7 +30,7 @@ public class DestructorTests
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -43,7 +46,7 @@ public class DestructorTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
                 ~Target()

@@ -18,17 +18,16 @@ public class ConstructorTests
             class Thing { }
 
             [Mixin]
-            class Source
+            $source Source
             {
                 public Source(int aNumber, Thing? aThing)
-                    : base(/* ... */)
                 {
                     // implementation
                 }
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -44,11 +43,10 @@ public class ConstructorTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
                 public Target(int aNumber, global::Test.Thing? aThing)
-                    : base(/* ... */)
                 {
                     // implementation
                 }

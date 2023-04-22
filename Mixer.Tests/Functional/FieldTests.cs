@@ -19,13 +19,13 @@ public class FieldTests
             class Thing { }
 
             [Mixin]
-            class Source
+            $source Source
             {
                 public Thing? TheThing;
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -41,7 +41,7 @@ public class FieldTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
                 public global::Test.Thing? TheThing;
@@ -64,13 +64,13 @@ public class FieldTests
             namespace Test;
 
             [Mixin]
-            class Source
+            $source Source
             {
                 public const int TheNumber = 42;
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -86,7 +86,7 @@ public class FieldTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
                 public const int TheNumber = 42;
@@ -111,13 +111,13 @@ public class FieldTests
             class Thing { }
 
             [Mixin]
-            class Source
+            $source Source
             {
                 public static readonly Thing TheThing = new();
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -133,7 +133,7 @@ public class FieldTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
                 public static readonly global::Test.Thing TheThing = new();

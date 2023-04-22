@@ -19,7 +19,7 @@ public class MethodTests
             class Thing { }
 
             [Mixin]
-            class Source
+            $source Source
             {
                 public void DoIt(int aNumber, Thing? aThing = default)
                 {
@@ -28,7 +28,7 @@ public class MethodTests
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -44,7 +44,7 @@ public class MethodTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
                 public void DoIt(int aNumber, global::Test.Thing? aThing = default)

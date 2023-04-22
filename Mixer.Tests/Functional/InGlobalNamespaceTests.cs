@@ -12,10 +12,10 @@ public class InGlobalNamespaceTests
         new FunctionalTestBuilder().WithInput(
             """
             [Mixer.Mixin]
-            class Source { }
+            $source Source { }
 
             [Mixer.Include(typeof(Source))]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -29,7 +29,7 @@ public class InGlobalNamespaceTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
             }
 

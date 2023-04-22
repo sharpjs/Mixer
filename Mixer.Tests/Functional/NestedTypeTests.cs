@@ -16,16 +16,16 @@ public class NestedTypeTests
             namespace Test;
 
             [Mixin]
-            class Source
+            $source Source
             {
-                protected class ThingDoer
+                internal class ThingDoer
                 {
                     public void DoTheThing() { }
                 }
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -41,10 +41,10 @@ public class NestedTypeTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                protected class ThingDoer
+                internal class ThingDoer
                 {
                     public void DoTheThing() { }
                 }
@@ -67,7 +67,7 @@ public class NestedTypeTests
             namespace Test;
 
             [Mixin]
-            class Source
+            $source Source
             {
                 private readonly ref struct ThingDoer
                 {
@@ -76,7 +76,7 @@ public class NestedTypeTests
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -92,7 +92,7 @@ public class NestedTypeTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
                 private readonly ref struct ThingDoer
@@ -118,16 +118,16 @@ public class NestedTypeTests
             namespace Test;
 
             [Mixin]
-            class Source
+            $source Source
             {
-                internal interface IThingDoer
+                public interface IThingDoer
                 {
                     void DoTheThing();
                 }
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -143,10 +143,10 @@ public class NestedTypeTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                internal interface IThingDoer
+                public interface IThingDoer
                 {
                     void DoTheThing();
                 }
@@ -169,17 +169,17 @@ public class NestedTypeTests
             namespace Test;
 
             [Mixin]
-            class Source
+            $source Source
             {
-                protected record class Thing(string? Name)
-                //               ^^^^^ optional
+                private record class Thing(string? Name)
+                //             ^^^^^ optional
                 {
                     public bool IsNamed => Name is { Length: > 0 };
                 }
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -195,11 +195,11 @@ public class NestedTypeTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                protected record class Thing(string? Name)
-                //               ^^^^^ optional
+                private record class Thing(string? Name)
+                //             ^^^^^ optional
                 {
                     public bool IsNamed => Name is { Length: > 0 };
                 }
@@ -222,16 +222,16 @@ public class NestedTypeTests
             namespace Test;
 
             [Mixin]
-            class Source
+            $source Source
             {
-                private protected readonly record struct Thing(string? Name)
+                private readonly record struct Thing(string? Name)
                 {
                     public bool IsNamed => Name is { Length: > 0 };
                 }
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -247,10 +247,10 @@ public class NestedTypeTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                private protected readonly record struct Thing(string? Name)
+                private readonly record struct Thing(string? Name)
                 {
                     public bool IsNamed => Name is { Length: > 0 };
                 }
@@ -275,13 +275,13 @@ public class NestedTypeTests
             class Thing { }
 
             [Mixin]
-            class Source
+            $source Source
             {
                 public delegate Thing ThingAction(Thing aThing);
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -297,7 +297,7 @@ public class NestedTypeTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
                 public delegate global::Test.Thing ThingAction(global::Test.Thing aThing);
@@ -320,13 +320,13 @@ public class NestedTypeTests
             namespace Test;
 
             [Mixin]
-            class Source
+            $source Source
             {
-                protected internal enum Stooges { Larry, Curly, Moe }
+                internal enum Stooges { Larry, Curly, Moe }
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -342,10 +342,10 @@ public class NestedTypeTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                protected internal enum Stooges { Larry, Curly, Moe }
+                internal enum Stooges { Larry, Curly, Moe }
             }
 
             #nullable restore

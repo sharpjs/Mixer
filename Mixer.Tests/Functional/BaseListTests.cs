@@ -15,14 +15,14 @@ public class BaseListTests
 
             namespace Test;
 
-            class Foo { }
+            interface IFoo { }
             interface IBar { }
 
             [Mixin]
-            class Source : Foo, IBar { }
+            $source Source : IFoo, IBar { }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -38,8 +38,8 @@ public class BaseListTests
             #region Source
             #nullable enable
 
-            partial class Target
-                : global::Test.Foo, global::Test.IBar
+            partial $target Target
+                : global::Test.IFoo, global::Test.IBar
             {
             }
 
@@ -63,10 +63,10 @@ public class BaseListTests
             class Bar { }
 
             [Mixin]
-            class Source : IFoo<int, Bar> { }
+            $source Source : IFoo<int, Bar> { }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -82,7 +82,7 @@ public class BaseListTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
                 : global::Test.IFoo<int, global::Test.Bar>
             {
             }
@@ -107,10 +107,10 @@ public class BaseListTests
             class Bar { }
 
             [Mixin]
-            class Source<T0, T1> : IFoo<T0, T1> { }
+            $source Source<T0, T1> : IFoo<T0, T1> { }
 
             [Include<Source<int, Bar>>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -127,7 +127,7 @@ public class BaseListTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
                 : global::Test.IFoo<global::System.Int32, global::Test.Bar>
             {
             }

@@ -18,13 +18,13 @@ public class PropertyTests
             class Thing { }
 
             [Mixin]
-            class Source
+            $source Source
             {
                 public Thing? TheThing { get; set; }
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -40,7 +40,7 @@ public class PropertyTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
                 public global::Test.Thing? TheThing { get; set; }
@@ -66,13 +66,13 @@ public class PropertyTests
             interface IHasThing { Thing TheThing { get; } }
 
             [Mixin]
-            class Source : IHasThing
+            $source Source : IHasThing
             {
-                Thing IHasThing.TheThing { get; } = new();
+                Thing IHasThing.TheThing => new();
             }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -88,11 +88,11 @@ public class PropertyTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
                 : global::Test.IHasThing
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                global::Test.Thing global::Test.IHasThing.TheThing { get; } = new();
+                global::Test.Thing global::Test.IHasThing.TheThing => new();
             }
 
             #nullable restore

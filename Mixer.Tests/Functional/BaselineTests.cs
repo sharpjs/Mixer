@@ -12,6 +12,8 @@ public class BaselineTests
         new FunctionalTestBuilder()
         .WithLanguageVersion(LanguageVersion.CSharp7)
         .WithNullableOptions(NullableContextOptions.Disable)
+        .WithSourceKinds(Class | Struct)
+        .WithTargetKinds(Class | Struct)
         .WithInput(
             """
             using Mixer;
@@ -19,12 +21,12 @@ public class BaselineTests
             namespace Test
             {
                 [Mixin]
-                class Source
+                $source Source
                 {
                 }
 
                 [Include(typeof(Source))]
-                partial class Target
+                partial $target Target
                 {
                 }
             }
@@ -42,7 +44,7 @@ public class BaselineTests
             {
                 #region Source
 
-                partial class Target
+                partial $target Target
                 {
                 }
 
@@ -58,7 +60,10 @@ public class BaselineTests
     {
         // C#8 = C#7 + nullable analysis
 
-        new FunctionalTestBuilder().WithLanguageVersion(LanguageVersion.CSharp8)
+        new FunctionalTestBuilder()
+        .WithLanguageVersion(LanguageVersion.CSharp8)
+        .WithSourceKinds(Class | Struct)
+        .WithTargetKinds(Class | Struct)
         .WithInput(
             """
             using Mixer;
@@ -66,12 +71,12 @@ public class BaselineTests
             namespace Test
             {
                 [Mixin]
-                class Source
+                $source Source
                 {
                 }
 
                 [Include(typeof(Source))]
-                partial class Target
+                partial $target Target
                 {
                 }
             }
@@ -90,7 +95,7 @@ public class BaselineTests
                 #region Source
                 #nullable enable
 
-                partial class Target
+                partial $target Target
                 {
                 }
 
@@ -107,7 +112,8 @@ public class BaselineTests
     {
         // C#10 = C#8 + file-scoped namespaces
 
-        new FunctionalTestBuilder().WithLanguageVersion(LanguageVersion.CSharp10)
+        new FunctionalTestBuilder()
+        .WithLanguageVersion(LanguageVersion.CSharp10)
         .WithInput(
             """
             using Mixer;
@@ -115,10 +121,10 @@ public class BaselineTests
             namespace Test;
 
             [Mixin]
-            class Source { }
+            $source Source { }
 
             [Include(typeof(Source))]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -134,7 +140,7 @@ public class BaselineTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
             }
 
@@ -150,7 +156,8 @@ public class BaselineTests
     {
         // C#11 = C#10 + generic attributes
 
-        new FunctionalTestBuilder().WithLanguageVersion(LanguageVersion.CSharp11)
+        new FunctionalTestBuilder()
+        .WithLanguageVersion(LanguageVersion.CSharp11)
         .WithInput(
             """
             using Mixer;
@@ -158,10 +165,10 @@ public class BaselineTests
             namespace Test;
 
             [Mixin]
-            class Source { }
+            $source Source { }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -177,7 +184,7 @@ public class BaselineTests
             #region Source
             #nullable enable
 
-            partial class Target
+            partial $target Target
             {
             }
 

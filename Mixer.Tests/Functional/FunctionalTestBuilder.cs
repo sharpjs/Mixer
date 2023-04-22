@@ -8,9 +8,11 @@ namespace Mixer.Tests.Functional;
 /// <summary>
 ///   A builder to set up and run a functional test.
 /// </summary>
-internal class FunctionalTestBuilder
+internal partial class FunctionalTestBuilder
 {
-    private const string TargetKindPlaceholder = "$kind";
+    private const string
+        SourceKindPlaceholder = "$source",
+        TargetKindPlaceholder = "$target";
 
     private readonly List<string>                     _inputs;
     private readonly List<string>                     _expectedDiagnostics;
@@ -18,6 +20,8 @@ internal class FunctionalTestBuilder
 
     private LanguageVersion        _languageVersion;
     private NullableContextOptions _nullableOptions;
+    private SourceOrTargetKinds    _sourceKinds;
+    private SourceOrTargetKinds    _targetKinds;
 
     /// <summary>
     ///   Initializes a new <see cref="FunctionalTestBuilder"/> instance using
@@ -30,6 +34,8 @@ internal class FunctionalTestBuilder
         _expectedGeneratedSources = new();
         _languageVersion          = LanguageVersion.CSharp11;
         _nullableOptions          = NullableContextOptions.Enable;
+        _sourceKinds              = SourceOrTargetKinds.All;
+        _targetKinds              = SourceOrTargetKinds.All;
     }
 
     /// <summary>
@@ -59,6 +65,36 @@ internal class FunctionalTestBuilder
     public FunctionalTestBuilder WithNullableOptions(NullableContextOptions options)
     {
         _nullableOptions = options;
+        return this;
+    }
+
+    /// <summary>
+    ///   Sets the kinds of sources to test.
+    /// </summary>
+    /// <param name="options">
+    ///   The source kinds to use.
+    /// </param>
+    /// <returns>
+    ///   The builder, to permit method chaining.
+    /// </returns>
+    public FunctionalTestBuilder WithSourceKinds(SourceOrTargetKinds kinds)
+    {
+        _sourceKinds = kinds;
+        return this;
+    }
+
+    /// <summary>
+    ///   Sets the kinds of targets to test.
+    /// </summary>
+    /// <param name="options">
+    ///   The target kinds to use.
+    /// </param>
+    /// <returns>
+    ///   The builder, to permit method chaining.
+    /// </returns>
+    public FunctionalTestBuilder WithTargetKinds(SourceOrTargetKinds kinds)
+    {
+        _targetKinds = kinds;
         return this;
     }
 
@@ -115,15 +151,38 @@ internal class FunctionalTestBuilder
     /// </summary>
     public void Test()
     {
-        Test(        "class");
-        Test( "record class");
-        Test(       "struct");
-        Test("record struct");
+        const int SourceOrTargetKindCount = 4;
+
+        for (var targetIndex = 0; targetIndex < SourceOrTargetKindCount; targetIndex++)
+        for (var sourceIndex = 0; sourceIndex < SourceOrTargetKindCount; sourceIndex++)
+            Test(sourceIndex, targetIndex);
     }
 
-    private void Test(string targetKind)
+    private void Test(int sourceIndex, int targetIndex)
     {
-        var syntaxTrees = Parse(targetKind);
+        if (!_sourceKinds.HasAny(1 << sourceIndex))
+            return;
+
+        if (!_targetKinds.HasAny(1 << targetIndex))
+            return;
+
+        var sourceKeywords = SourceOrTargetKindKeywords[sourceIndex];
+        var targetKeywords = SourceOrTargetKindKeywords[targetIndex];
+
+        Test(sourceKeywords, targetKeywords);
+    }
+
+    private static readonly string[] SourceOrTargetKindKeywords =
+    {
+                "class",
+         "record class",
+               "struct",
+        "record struct",
+    };
+
+    private void Test(string sourceKind, string targetKind)
+    {
+        var syntaxTrees = Parse(sourceKind, targetKind);
         var compilation = Compile(syntaxTrees);
 
         if (compilation.GetDiagnostics() is { Length: > 0 } diagnostics)
@@ -140,15 +199,16 @@ internal class FunctionalTestBuilder
         }
     }
 
-    private IEnumerable<SyntaxTree> Parse(string targetKind)
+    private IEnumerable<SyntaxTree> Parse(string sourceKind, string targetKind)
     {
         var options = new CSharpParseOptions(_languageVersion);
 
-        return _inputs.Select(source => Parse(source, options, targetKind));
+        return _inputs.Select(source => Parse(source, options, sourceKind, targetKind));
     }
 
-    private static SyntaxTree Parse(string source, CSharpParseOptions options, string targetKind)
+    private static SyntaxTree Parse(string source, CSharpParseOptions options, string sourceKind, string targetKind)
     {
+        source = source.Replace(SourceKindPlaceholder, sourceKind);
         source = source.Replace(TargetKindPlaceholder, targetKind);
 
         return CSharpSyntaxTree.ParseText(source, options);

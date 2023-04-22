@@ -16,7 +16,7 @@ public class NotAMixinTests
             class NotAMixin { }
 
             [Include<NotAMixin>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectDiagnostic(
@@ -37,7 +37,7 @@ public class NotAMixinTests
             class NotAMixin { }
 
             [Include<NotAMixin>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectDiagnostic(

@@ -20,10 +20,10 @@ public class AttributeTests
 
             [Mixin]
             [Foo]
-            class Source { }
+            $source Source { }
 
             [Include<Source>]
-            partial $kind Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -40,7 +40,7 @@ public class AttributeTests
             #nullable enable
 
             [global::Test.FooAttribute]
-            partial $kind Target
+            partial $target Target
             {
             }
 
@@ -64,10 +64,10 @@ public class AttributeTests
             class FooAttribute : Attribute { }
 
             [Mixin, Foo]
-            class Source { }
+            $source Source { }
 
             [Include<Source>]
-            partial $kind Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -84,7 +84,7 @@ public class AttributeTests
             #nullable enable
 
             [global::Test.FooAttribute]
-            partial $kind Target
+            partial $target Target
             {
             }
 
@@ -111,10 +111,10 @@ public class AttributeTests
             [Foo(
                 // stuff
             )]
-            class Source { }
+            $source Source { }
 
             [Include<Source>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectGeneratedSource(
@@ -133,7 +133,7 @@ public class AttributeTests
             [global::Test.FooAttribute(
                 // stuff
             )]
-            partial class Target
+            partial $target Target
             {
             }
 

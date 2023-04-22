@@ -16,10 +16,10 @@ public class GenericTargetTests
             namespace Test;
 
             [Mixin]
-            class Source { }
+            $source Source { }
 
             [Include<Source>]
-            partial class Target<T0, T1> { }
+            partial $target Target<T0, T1> { }
             """
         )
         .ExpectGeneratedSource(
@@ -35,7 +35,7 @@ public class GenericTargetTests
             #region Source
             #nullable enable
 
-            partial class Target<T0, T1>
+            partial $target Target<T0, T1>
             {
             }
 
@@ -57,10 +57,10 @@ public class GenericTargetTests
             namespace Test;
 
             [Mixin]
-            class Source { }
+            $source Source { }
 
             [Include<Source>]
-            partial class Target<T0, T1>
+            partial $target Target<T0, T1>
                 where T0 : Attribute, IFormattable, new()
                 where T1 : notnull, new()
             { }
@@ -79,7 +79,7 @@ public class GenericTargetTests
             #region Source
             #nullable enable
 
-            partial class Target<T0, T1>
+            partial $target Target<T0, T1>
                 where T0 : global::System.Attribute, global::System.IFormattable, new()
                 where T1 : notnull, new()
             {

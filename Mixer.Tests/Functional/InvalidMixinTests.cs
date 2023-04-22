@@ -19,7 +19,7 @@ public class InvalidMixinTests
             enum InvalidMixin { }
 
             [Include<InvalidMixin>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectDiagnostic(
@@ -43,7 +43,7 @@ public class InvalidMixinTests
             enum InvalidMixin { }
 
             [Include<InvalidMixin>]
-            partial class Target { }
+            partial $target Target { }
             """
         )
         .ExpectDiagnostic(
