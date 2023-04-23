@@ -5,7 +5,7 @@
 [assembly: SetCulture  ("en-CA")] // for number and time formatting
 [assembly: SetUICulture("en-CA")] // for resource files
 
-namespace Mixer;
+namespace Mixer.Tests;
 
 [SetUpFixture]
 public static class TestSuite

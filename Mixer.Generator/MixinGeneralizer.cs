@@ -411,12 +411,12 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
             return IdentifierName(TargetTypeNamePlaceholder);
 
         // Visit LHS and dot
-        var left  = (NameSyntax?) Visit(node.Left) ?? throw new ArgumentNullException("left");
+        var left  = (NameSyntax) Visit(node.Left)!; // Never null in this rewriter
         var dot   = VisitToken(node.DotToken);
 
         // Visit RHS
         _isRhsOfQualifiedName = true;
-        var right = (SimpleNameSyntax?) Visit(node.Right) ?? throw new ArgumentNullException("right");
+        var right = (SimpleNameSyntax) Visit(node.Right)!; // Never null in this rewriter
         _isRhsOfQualifiedName = false;
 
         return node.Update(left, dot, right);
@@ -432,12 +432,12 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
             return IdentifierName(TargetTypeNamePlaceholder);
 
         // Visit LHS and colon
-        var left  = (IdentifierNameSyntax?) Visit(node.Alias) ?? throw new ArgumentNullException("alias");
+        var left  = (IdentifierNameSyntax) Visit(node.Alias)!; // Never null in this rewriter
         var colon = VisitToken(node.ColonColonToken);
 
         // Visit RHS
         _isRhsOfQualifiedName = true;
-        var right = (SimpleNameSyntax?) Visit(node.Name) ?? throw new ArgumentNullException("name");
+        var right = (SimpleNameSyntax) Visit(node.Name)!; // Never null in this rewriter
         _isRhsOfQualifiedName = false;
 
         return node.Update(left, colon, right);
@@ -505,7 +505,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
             case SymbolKind.Field     when symbol is IFieldSymbol     { IsStatic: true }:
             case SymbolKind.Property  when symbol is IPropertySymbol  { IsStatic: true }:
             case SymbolKind.Event     when symbol is IEventSymbol     { IsStatic: true }:
-                return Qualify(symbol, node);
+                return Qualify(symbol).WithTriviaFrom(node);
 
             case SymbolKind.Method when symbol is IMethodSymbol { MethodKind: MethodKind.Constructor }:
                 return Qualify(symbol.ContainingType);
