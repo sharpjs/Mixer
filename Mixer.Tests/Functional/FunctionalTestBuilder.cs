@@ -21,6 +21,7 @@ internal partial class FunctionalTestBuilder
     private LanguageVersion        _languageVersion;
     private NullableContextOptions _nullableOptions;
     private string[]               _sourceAndTargetKinds;
+    private string?                _mixerAlias;
 
     /// <summary>
     ///   Initializes a new <see cref="FunctionalTestBuilder"/> instance using
@@ -78,6 +79,21 @@ internal partial class FunctionalTestBuilder
     public FunctionalTestBuilder WithSourceAndTargetKinds(params string[] kinds)
     {
         _sourceAndTargetKinds = kinds;
+        return this;
+    }
+
+    /// <summary>
+    ///   Sets the alias to use for the Mixer.dll reference.
+    /// </summary>
+    /// <param name="alias">
+    ///   The alias to use for the Mixer.dll reference.
+    /// </param>
+    /// <returns>
+    ///   The builder, to permit method chaining.
+    /// </returns>
+    public FunctionalTestBuilder WithMixerAlias(string alias)
+    {
+        _mixerAlias = alias;
         return this;
     }
 
@@ -181,12 +197,16 @@ internal partial class FunctionalTestBuilder
     {
         var name = TestContext.CurrentContext.Test.FullName;
 
+        var references = _mixerAlias is { } alias
+            ? GetMetadataReferences(alias)
+            : MetadataReferences;
+
         var options = new CSharpCompilationOptions(
             OutputKind.DynamicallyLinkedLibrary,
             nullableContextOptions: _nullableOptions
         );
 
-        return CSharpCompilation.Create(name, syntaxTrees, MetadataReferences, options);
+        return CSharpCompilation.Create(name, syntaxTrees, references, options);
     }
 
     private GeneratorRunResult RunMixinGenerator(CSharpCompilation compilation)
@@ -224,17 +244,23 @@ internal partial class FunctionalTestBuilder
     private static readonly ImmutableArray<MetadataReference>
         MetadataReferences = GetMetadataReferences();
 
-    private static ImmutableArray<MetadataReference> GetMetadataReferences()
+    private static ImmutableArray<MetadataReference>
+        GetMetadataReferences(string? mixerAlias = null)
     {
+        const int ExplicitReferenceCount = 3;
+
         var names = typeof(MixinAttribute).Assembly.GetReferencedAssemblies();
-        var array = ImmutableArray.CreateBuilder<MetadataReference>(names.Length + 3);
+        var array = ImmutableArray.CreateBuilder<MetadataReference>(
+            names.Length + ExplicitReferenceCount
+        );
 
         foreach (var name in names)
             array.Add(MakeReference(name));
 
+        // ExplicitReferenceCount must be the count of these
         array.Add(MakeReference("System.Runtime"));
         array.Add(MakeReference(typeof(object)        .Assembly));
-        array.Add(MakeReference(typeof(MixinAttribute).Assembly));
+        array.Add(MakeReference(typeof(MixinAttribute).Assembly, mixerAlias));
 
         return array.MoveToImmutable();
     }
@@ -245,8 +271,15 @@ internal partial class FunctionalTestBuilder
     private static MetadataReference MakeReference(AssemblyName assemblyName)
         => MakeReference(Assembly.Load(assemblyName));
 
-    private static MetadataReference MakeReference(Assembly assembly)
-        => MetadataReference.CreateFromFile(assembly.Location);
+    private static MetadataReference MakeReference(Assembly assembly, string? alias = null)
+    {
+        var properties = default(MetadataReferenceProperties);
+
+        if (alias is not null)
+            properties = properties.WithAliases(ImmutableArray.Create(alias));
+
+        return MetadataReference.CreateFromFile(assembly.Location, properties);
+    }
 
     #endregion
 }
