@@ -40,8 +40,10 @@ internal static class SyntaxHelpers
     public static AliasQualifiedNameSyntax Global(string name)
         => AliasQualifiedName(Global(), IdentifierName(name));
 
+#if NOT_USED
     public static AliasQualifiedNameSyntax Global(string alias, string name)
         => AliasQualifiedName(IdentifierName(alias), IdentifierName(name));
+#endif
 
     public static QualifiedNameSyntax Dot(this NameSyntax lhs, string name)
         => QualifiedName(lhs, IdentifierName(name));
@@ -121,15 +123,6 @@ internal static class SyntaxHelpers
     public static Location GetLocation(this SyntaxReference reference)
     {
         return reference.SyntaxTree.GetLocation(reference.Span);
-    }
-
-    public static SyntaxTrivia GetEndOfLine(this SyntaxNode node)
-    {
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                return trivia;
-
-        return GetPlatformEndOfLine();
     }
 
     [ExcludeFromCodeCoverage] // because a test run can exercise only one path

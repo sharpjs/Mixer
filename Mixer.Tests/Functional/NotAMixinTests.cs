@@ -7,7 +7,7 @@ namespace Mixer.Tests.Functional;
 public class NotAMixinTests
 {
     [Test]
-    public void English2()
+    public void English()
     {
         new FunctionalTestBuilder()
         .WithSourceAndTargetKinds(Class)

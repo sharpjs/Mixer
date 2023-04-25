@@ -179,9 +179,4 @@ internal static class SymbolExtensions
             || parameter.HasNotNullConstraint           // notnull
             || parameter.HasUnmanagedTypeConstraint;    // unmanaged
     }
-
-    public static bool HasConstraintTypes(this ITypeParameterSymbol parameter)
-    {
-        return parameter.ConstraintTypes.Any();
-    }
 }

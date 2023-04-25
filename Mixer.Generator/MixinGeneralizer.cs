@@ -569,10 +569,14 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
     private bool IsMixinMarker(AttributeSyntax node)
     {
-        return GetType(node)         is                  { Name: "MixinAttribute"  } type
-            && type.ContainingSymbol is INamespaceSymbol { Name: "Mixer"           } ns1
-            && ns1 .ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: true } ns0
-            && ns0 .ContainingSymbol is IModuleSymbol    { Name: "Mixer.dll"       };
+        return IsMixinMarker(GetType(node));
+    }
+
+    internal static bool IsMixinMarker(ITypeSymbol? symbol)
+    {
+        return symbol                is                  { Name: "MixinAttribute"  } type
+            && type.ContainingSymbol is INamespaceSymbol { Name: "Mixer"           } ns
+            && ns  .ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: true };
     }
 
     private bool IsExtensionMethodInvocation(

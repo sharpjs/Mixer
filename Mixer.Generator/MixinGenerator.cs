@@ -51,7 +51,7 @@ public class MixinGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(inclusions1, Execute);
     }
 
-    private static LanguageVersion GetLanguageVersion(ParseOptions options, CancellationToken _)
+    internal static LanguageVersion GetLanguageVersion(ParseOptions options, CancellationToken _)
     {
         return options is CSharpParseOptions cs
             ? cs.LanguageVersion
