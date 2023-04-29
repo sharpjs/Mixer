@@ -401,6 +401,21 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
     private bool _isRhsOfQualifiedName;
 
+    // Member access expressions function as qualified names
+    public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+    {
+        // Visit LHS and dot
+        var left = (ExpressionSyntax) Visit(node.Expression)!;
+        var dot =  VisitToken(node.OperatorToken);
+
+        // Visit RHS
+        _isRhsOfQualifiedName = true;
+        var right = (SimpleNameSyntax) Visit(node.Name)!;
+        _isRhsOfQualifiedName = false;
+
+        return node.Update(left, dot, right);
+    }
+
     public override SyntaxNode? VisitQualifiedName(QualifiedNameSyntax node)
     {
         // Get symbol before node is changed by visitor
@@ -533,14 +548,9 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
         // Expand extension method invocation
 
-        var name = (NameSyntax?) Visit(expression.Name)
-            ?? throw new ArgumentNullException("name");
-
-        var target = (ExpressionSyntax?) Visit(expression.Expression)
-            ?? throw new ArgumentNullException("expression");
-
-        var args = (ArgumentListSyntax?) Visit(node.ArgumentList)
-            ?? throw new ArgumentNullException("argumentList");
+        var name   = (NameSyntax?)         Visit(expression.Name)!;       // Never null in this rewriter
+        var target = (ExpressionSyntax?)   Visit(expression.Expression)!; // Never null in this rewriter
+        var args   = (ArgumentListSyntax?) Visit(node.ArgumentList)!;     // Never null in this rewriter
 
         args = args.WithArguments(args.Arguments.Insert(0, Argument(target)));
 
