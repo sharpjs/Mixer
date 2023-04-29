@@ -159,19 +159,11 @@ internal partial class FunctionalTestBuilder
     {
         var syntaxTrees = Parse(sourceKind, targetKind);
         var compilation = Compile(syntaxTrees);
+        var result      = RunMixinGenerator(compilation);
 
-        if (compilation.GetDiagnostics() is { Length: > 0 } diagnostics)
-        {
-            Assert(diagnostics);
-        }
-        else
-        {
-            var result = RunMixinGenerator(compilation);
-
-            result.Exception.Should().BeNull();
-            Assert(result.Diagnostics);
-            Assert(result.GeneratedSources, targetKind);
-        }
+        result.Exception.Should().BeNull();
+        Assert(result.Diagnostics.AddRange(compilation.GetDiagnostics()));
+        Assert(result.GeneratedSources, targetKind);
     }
 
     private IEnumerable<SyntaxTree> Parse(string sourceKind, string targetKind)

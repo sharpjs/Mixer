@@ -29,6 +29,11 @@ public class InvalidMixinTests
                 "Attribute 'Mixin' is not valid on this declaration type. " +
                 "It is only valid on 'class, struct' declarations."
         )
+        .ExpectDiagnostic(
+            "(8,2): error MIX0001: " +
+                "Cannot include 'Test.InvalidMixin' because it is not a mixin. " +
+                "Mixins must be marked with [Mixin]."
+        )
         .Test();
     }
 
@@ -54,6 +59,11 @@ public class InvalidMixinTests
             "(5,2): error CS0592: " +
                 "El atributo 'Mixin' no es válido en este tipo de declaración. " +
                 "Solo es válido en declaraciones 'clase, estructura'."
+        )
+        .ExpectDiagnostic(
+            "(8,2): error MIX0001: " +
+                "No se puede incluir 'Test.InvalidMixin' porque no es una mixin. " +
+                "Los mixins deben estar marcados con [Mixin]."
         )
         .Test();
     }
