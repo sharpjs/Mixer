@@ -13,7 +13,6 @@ public class MethodTests
         .WithInput(
             """
             using Mixer;
-            #pragma warning disable CS0067 // The event '...' is never used
 
             namespace Test;
 
