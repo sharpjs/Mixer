@@ -221,7 +221,10 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
     private SyntaxTrivia Reindent(SyntaxTrivia trivia)
     {
         var length = GetVisualLength(trivia.ToString()) + _shift;
-        var space  = GetSpace(length);
+        if (length < 1)
+            return default;
+
+        var space = GetSpace(length);
         return Whitespace(space);
     }
 

@@ -144,7 +144,11 @@ internal static class SymbolExtensions
     public static bool IsConstructedFrom(this INamedTypeSymbol type, INamedTypeSymbol other)
     {
         return SymbolEqualityComparer.IncludeNullability
-            .Equals(type.ConstructedFrom, other);
+            .Equals(type.OriginalDefinition, other);
+
+        // Cannot use type.ConstructedFrom here, becuase when type is a generic
+        // nested within a generic, ConstructedFrom returns a partially closed
+        // type (closed outer, open inner).
     }
 
     public static bool HasTypeParameters(this INamedTypeSymbol type)
