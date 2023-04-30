@@ -19,8 +19,6 @@ public class GenericNameTests
 
             namespace Test;
 
-            class Thing { }
-
             [Mixin]
             $source Source
             {
@@ -67,8 +65,6 @@ public class GenericNameTests
 
             namespace Test;
 
-            class Thing { }
-
             [Mixin]
             $source Source
             {
@@ -114,8 +110,6 @@ public class GenericNameTests
             using Mixer;
 
             namespace Test;
-
-            class Thing { }
 
             [Mixin]
             $source Source
@@ -164,8 +158,6 @@ public class GenericNameTests
 
             namespace Test;
 
-            class Thing { }
-
             [Mixin]
             $source Source
             {
@@ -212,8 +204,6 @@ public class GenericNameTests
             using System;
 
             namespace Test;
-
-            class Thing { }
 
             [Mixin]
             $source Source<T0, T1>
@@ -262,20 +252,18 @@ public class GenericNameTests
 
             namespace Test;
 
-            class Thing { }
-
             [Mixin]
-            $source Source<T0, T1>
+            $source Source
             {
                 public UnknownType<int, Guid> Property { get; }
             }
 
-            [Include<Source<int, Guid>>]
+            [Include<Source>]
             partial $target Target { }
             """
         )
         .ExpectDiagnostic(
-            "(11,12): error CS0246: " +
+            "(9,12): error CS0246: " +
             "The type or namespace name 'UnknownType<,>' could not be found " +
             "(are you missing a using directive or an assembly reference?)"
         )
