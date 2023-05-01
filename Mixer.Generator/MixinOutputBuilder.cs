@@ -343,14 +343,14 @@ internal ref struct MixinOutputBuilder
         var array = ImmutableArray.CreateBuilder<SyntaxNodeOrToken>(count * 2 - 1);
 
         // Special primary constraint
-        if (parameter.HasReferenceTypeConstraint)
-            array.Add(ClassOrStructConstraint(K.ClassKeyword));
+        if (parameter.HasUnmanagedTypeConstraint)
+            array.Add(UnmanagedConstraint());
+        else if (parameter.HasReferenceTypeConstraint)
+            array.Add(ClassOrStructConstraint(K.ClassConstraint));
         else if (parameter.HasValueTypeConstraint)
-            array.Add(ClassOrStructConstraint(K.StructKeyword));
+            array.Add(ClassOrStructConstraint(K.StructConstraint));
         else if (parameter.HasNotNullConstraint)
             array.Add(NotNullConstraint());
-        else if (parameter.HasUnmanagedTypeConstraint)
-            array.Add(UnmanagedConstraint());
 
         // Non-special primary and any secondary constraints
         foreach (var type in types)
@@ -361,11 +361,6 @@ internal ref struct MixinOutputBuilder
             array.AddCommaSeparated(ConstructorConstraint());
 
         return SeparatedList<TypeParameterConstraintSyntax>(array.MoveToImmutable());
-    }
-
-    private static TypeParameterConstraintSyntax RenderConstraint(ITypeSymbol constraint)
-    {
-        return ClassOrStructConstraint(K.ClassConstraint);
     }
 
     private MemberDeclarationSyntax WrapInTriviaWithoutNullable(
@@ -449,10 +444,15 @@ internal ref struct MixinOutputBuilder
         => _indent = level;
 
     private SyntaxTriviaList IndentationList()
-        => _indent > 0 ? TriviaList(Indentation()) : default;
+        => _indent > 0 ? TriviaList(IndentationCore()) : default;
 
+#if USEFUL_IN_FUTURE
     private SyntaxTrivia Indentation()
-        => _indent > 0 ? Whitespace(new string(' ', _indent)) : default;
+        => _indent > 0 ? IndentationCore() : default;
+#endif
+
+    private SyntaxTrivia IndentationCore()
+        => Whitespace(new string(' ', _indent));
 
     private SyntaxTriviaList OneEndOfLine()
         => TriviaList(_endOfLine);
