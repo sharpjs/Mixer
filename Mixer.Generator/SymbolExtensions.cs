@@ -28,7 +28,7 @@ internal static class SymbolExtensions
     private static StringBuilder AppendForFileName(this StringBuilder builder, INamespaceSymbol ns)
     {
         if (ns.ContainingSymbol is INamespaceSymbol parent && !parent.IsGlobalNamespace)
-            builder.AppendForFileName(ns).Append('.');
+            builder.AppendForFileName(parent).Append('.');
 
         return builder.Append(ns.Name);
     }
