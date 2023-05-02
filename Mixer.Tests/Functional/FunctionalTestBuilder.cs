@@ -22,6 +22,7 @@ internal partial class FunctionalTestBuilder
     private NullableContextOptions _nullableOptions;
     private string[]               _sourceAndTargetKinds;
     private string?                _mixerAlias;
+    private bool                   _ignoreUnexpectedDiagnostics;
 
     /// <summary>
     ///   Initializes a new <see cref="FunctionalTestBuilder"/> instance using
@@ -113,6 +114,19 @@ internal partial class FunctionalTestBuilder
     }
 
     /// <summary>
+    ///   Configures the builder to ignore any diagnostics not explicitly
+    ///   expected by <see cref="ExpectDiagnostic(string)"/>.
+    /// </summary>
+    /// <returns>
+    ///   The builder, to permit method chaining.
+    /// </returns>
+    public FunctionalTestBuilder IgnoreUnexpectedDiagnostics()
+    {
+        _ignoreUnexpectedDiagnostics = true;
+        return this;
+    }
+
+    /// <summary>
     ///   Expects that the test will report the specified diagnostic.
     /// </summary>
     /// <param name="text">
@@ -162,7 +176,10 @@ internal partial class FunctionalTestBuilder
         var result      = RunMixinGenerator(compilation);
 
         result.Exception.Should().BeNull();
-        Assert(result.Diagnostics.AddRange(compilation.GetDiagnostics()));
+
+        if (!_ignoreUnexpectedDiagnostics)
+            Assert(result.Diagnostics.AddRange(compilation.GetDiagnostics()));
+
         Assert(result.GeneratedSources, targetKind);
     }
 
@@ -217,7 +234,10 @@ internal partial class FunctionalTestBuilder
         var diagnostics = diagnostics_
             .Select(d => d.ToString());
 
-        diagnostics.Should().BeEquivalentTo(_expectedDiagnostics);
+        if (_ignoreUnexpectedDiagnostics)
+            diagnostics.Should().Contain(_expectedDiagnostics);
+        else
+            diagnostics.Should().BeEquivalentTo(_expectedDiagnostics);
     }
 
     private void Assert(ImmutableArray<GeneratedSourceResult> generatedSources_, string targetKind)
