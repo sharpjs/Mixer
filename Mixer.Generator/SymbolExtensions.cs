@@ -3,7 +3,9 @@
 
 namespace Mixer;
 
+#if USED_FOR_TYPES_OTHER_THAN_TARGET_TYPE
 using static SpecialType;
+#endif
 using static SymbolKind;
 
 /// <summary>
@@ -37,21 +39,25 @@ internal static class SymbolExtensions
     {
         return type.Kind switch
         {
-            NamedType           => builder.AppendForFileName((INamedTypeSymbol) type),
-            ArrayType           => builder.AppendForFileName((IArrayTypeSymbol) type),
-            TypeParameter       => builder.Append(type.Name),
-            DynamicType         => builder.Append(type.Name),
-            _                   => builder.Append("ERROR"), // Pointers cannot be type arguments
+            TypeParameter => builder.Append(type.Name),
+#if USED_FOR_TYPES_OTHER_THAN_TARGET_TYPE
+            DynamicType   => builder.Append(type.Name),
+            NamedType     => builder.AppendForFileName((INamedTypeSymbol) type),
+            ArrayType     => builder.AppendForFileName((IArrayTypeSymbol) type),
+#endif
+            _             => builder.Append("ERROR"), // Pointers cannot be type arguments
         };
     }
 
     public static StringBuilder AppendForFileName(this StringBuilder builder, INamedTypeSymbol type)
     {
+#if USED_FOR_TYPES_OTHER_THAN_TARGET_TYPE
         if (type.HasShortName(out var name))
             return builder.Append(name);
 
         if (type.IsNullableOfT(out var t))
             return builder.AppendForFileName(t).Append('?');
+#endif
 
         return builder.AppendForFileNameCore(type);
     }
@@ -71,7 +77,7 @@ internal static class SymbolExtensions
             // Skip for global namespace, module, or assembly
         }
 
-        builder.Append(type.Name);
+        builder.Append(type.Name.NullIfEmpty() ?? "ERROR");
 
         if (type.Arity == 0)
             return builder;
@@ -93,6 +99,7 @@ internal static class SymbolExtensions
         return builder.Append('}');
     }
 
+#if USED_FOR_TYPES_OTHER_THAN_TARGET_TYPE
     private static StringBuilder AppendForFileName(this StringBuilder builder, IArrayTypeSymbol type)
     {
         return builder
@@ -140,6 +147,7 @@ internal static class SymbolExtensions
 
         return innerType is not null;
     }
+#endif
 
     public static bool IsConstructedFrom(this INamedTypeSymbol type, INamedTypeSymbol other)
     {
@@ -182,5 +190,10 @@ internal static class SymbolExtensions
             || parameter.HasValueTypeConstraint         // struct
             || parameter.HasNotNullConstraint           // notnull
             || parameter.HasUnmanagedTypeConstraint;    // unmanaged
+    }
+
+    private static string? NullIfEmpty(this string? value)
+    {
+        return string.IsNullOrEmpty(value) ? null : value;
     }
 }
