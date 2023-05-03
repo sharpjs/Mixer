@@ -29,7 +29,10 @@ internal static class SymbolExtensions
 
     private static StringBuilder AppendForFileName(this StringBuilder builder, INamespaceSymbol ns)
     {
-        if (ns.ContainingSymbol is INamespaceSymbol parent && !parent.IsGlobalNamespace)
+        // ContainingNamespace is never null becuase this code stops recursion
+        // before visiting the global namespace.
+        var parent = ns.ContainingNamespace!;
+        if (!parent.IsGlobalNamespace)
             builder.AppendForFileName(parent).Append('.');
 
         return builder.Append(ns.Name);
