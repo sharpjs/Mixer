@@ -21,7 +21,9 @@ public class SpaceTests
             [Mixin]
             $source Source
             {
-                public void Before() { }{{'\n'}}    public void Foo() { }{{'\r'}}{{'\n'}}    public void After() { }
+                public void Before() { } // comment{{        '\n'
+          }}    public void Foo()    { } // comment{{'\r'}}{{'\n'
+          }}    public void After()  { }
             }
 
             [Include<Source>]
@@ -44,11 +46,11 @@ public class SpaceTests
             partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                public void Before() { }
+                public void Before() { } // comment
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                public void Foo() { }
+                public void Foo()    { } // comment
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                public void After() { }
+                public void After()  { }
             }
 
             #nullable restore
@@ -180,7 +182,7 @@ public class SpaceTests
     {
         new FunctionalTestBuilder()
         .WithInput(
-            $$"""
+            """
             using Mixer;
 
             namespace Test;

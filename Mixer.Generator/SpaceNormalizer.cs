@@ -160,7 +160,8 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
                 _                           => VisitOtherTrivia     (oldTrivia, editor),
             };
 
-            editor.Add(newTrivia, different: newTrivia != oldTrivia || oldTrivia.IsNone());
+            var different = !newTrivia.IsEquivalentTo(oldTrivia) || oldTrivia.IsNone();
+            editor.Add(newTrivia, different);
         }
 
         return editor.ToList();
@@ -200,7 +201,7 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         return _endOfLine;
     }
 
-    private SyntaxTrivia VisitOtherTrivia(SyntaxTrivia trivia, SyntaxTriviaListEditor collector)
+    private SyntaxTrivia VisitOtherTrivia(SyntaxTrivia trivia, SyntaxTriviaListEditor editor)
     {
         // Recurse into structured trivia to visit its leaf nodes
         if (trivia.HasStructure)
@@ -211,7 +212,7 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         // imaginary preceding whitespace trivia to allow the rewriter a chance
         // to synthesize any necessary indentation and update state.
         var space = VisitWhitespaceTrivia();
-        collector.Add(space, different: space.IsSome());
+        editor.Add(space, different: space.IsSome());
 
         // Other unstructured trivia is neither whitespace nor a newline, so
         // there is no rewriting to do for it

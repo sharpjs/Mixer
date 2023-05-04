@@ -60,25 +60,27 @@ internal static class SyntaxHelpers
         return QualifyCore(symbol, name.WithoutTrivia(), alias).WithTriviaFrom(name);
     }
 
-    public static NameSyntax QualifyCore(ISymbol symbol, SimpleNameSyntax name, string? alias = "global")
+    private static NameSyntax QualifyCore(ISymbol symbol, SimpleNameSyntax name, string? alias = "global")
     // return: AliasQualifiedNameSyntax | QualifiedNameSyntax
     {
-        for (;;)
-        {
-            if (symbol.ContainingSymbol is not { } parent)
-                return name;
+        // NOTE: This method is not invoked in any context where a symbol could
+        // have an empty name.
+
+    //  for (;;)
+    //  {
+            var parent = symbol.ContainingSymbol;
 
             if (parent is INamespaceSymbol { IsGlobalNamespace: true })
                 return alias is { Length: > 0 }
                     ? AliasQualifiedName(IdentifierName(alias), name)
                     : name;
 
-            if (parent.Name.Length > 0)
+    //      if (parent.Name.Length > 0)
                 return QualifiedName(Qualify(parent, alias), name);
 
-            // Skip parent with empty name
-            symbol = parent;
-        }
+    //      // Skip parent with empty name
+    //      symbol = parent;
+    //  }
     }
 
     public static string GetPlaceholder(int index)

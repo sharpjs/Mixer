@@ -37,11 +37,18 @@ internal ref struct SyntaxTriviaListEditor
 
     private static void Copy(SyntaxTriviaList source, List<SyntaxTrivia> target, int count)
     {
+        if (count == 0)
+            return;
+
         var index = 0;
 
         foreach (var item in source)
-            if (index++ < count)
-                target.Add(item);
+        {
+            target.Add(item);
+
+            if (++index >= count)
+                break;
+        }
     }
 
     public SyntaxTriviaList ToList()
