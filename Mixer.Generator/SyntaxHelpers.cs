@@ -227,6 +227,25 @@ internal static class SyntaxHelpers
         array.Add(node);
     }
 
+    public static ArgumentListSyntax Prepend(
+        this ArgumentListSyntax list,
+        ArgumentSyntax          argument)
+    {
+        var arguments = list.Arguments;
+
+        arguments = arguments.Any()
+            ? SeparatedList<ArgumentSyntax>(
+                arguments.GetWithSeparators().InsertRange(0, new SyntaxNodeOrToken[]
+                {
+                    argument,
+                    TokenAndSpace(SyntaxKind.CommaToken)
+                })
+            )
+            : arguments.Add(argument);
+
+        return list.WithArguments(arguments);
+    }
+
     public static ImmutableArray<T> AddLeadingTrivia<T>(
         this ImmutableArray<T> nodes,
         SyntaxTriviaList       trivia)

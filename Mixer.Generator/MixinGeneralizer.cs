@@ -562,9 +562,12 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         var target = (ExpressionSyntax?)   Visit(expression.Expression)!; // Never null in this rewriter
         var args   = (ArgumentListSyntax?) Visit(node.ArgumentList)!;     // Never null in this rewriter
 
-        args = args.WithArguments(args.Arguments.Insert(0, Argument(target)));
+        var trivia = target.GetLeadingTrivia();
 
-        return node.Update(name, args);
+        name = name.WithLeadingTrivia(trivia);
+        args = args.Prepend(Argument(target.WithoutLeadingTrivia()));
+
+        return node.Update(expression: name, args);
     }
 
     #endregion
