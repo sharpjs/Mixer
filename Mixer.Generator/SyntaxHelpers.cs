@@ -129,7 +129,7 @@ internal static class SyntaxHelpers
         if (!type.IsGenericType)
             return IdentifierName(type.Name);
 
-        var arguments = SeparatedList(type.TypeParameters.Select(ToTypeArgument));
+        var arguments = MakeCommaSeparatedList(type.TypeParameters, ToTypeArgument);
 
         return GenericName(Identifier(type.Name), TypeArgumentList(arguments));
     }
