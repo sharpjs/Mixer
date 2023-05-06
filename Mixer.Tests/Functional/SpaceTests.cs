@@ -217,8 +217,7 @@ public class SpaceTests
             {
                 #nullable enable
                     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                #nullable enable
-                    public void Foo() { }
+                public void Foo() { }
             }
 
             #nullable restore
