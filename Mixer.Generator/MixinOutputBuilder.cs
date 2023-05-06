@@ -355,6 +355,7 @@ internal ref struct MixinOutputBuilder
         // Non-special primary and any secondary constraints
         foreach (var type in types)
             array.AddCommaSeparated(TypeConstraint(Qualify(type)));
+            // NOTE: No predefined type is usable as a constraint.
 
         // Constructor constraint
         if (parameter.HasConstructorConstraint)

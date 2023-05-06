@@ -113,7 +113,7 @@ internal static class SymbolExtensions
     }
 
     private static bool HasShortName(
-        this INamedTypeSymbol             type,
+        this ITypeSymbol                  type,
         [MaybeNullWhen(false)] out string name)
     {
         name = type.SpecialType switch
@@ -131,7 +131,7 @@ internal static class SymbolExtensions
             System_Int64      => "long",
             System_UInt64     => "ulong",
             System_Decimal    => "decimal",
-            System_Single     => "single",
+            System_Single     => "float",
             System_Double     => "double",
             System_String     => "string",
             _                 => null,

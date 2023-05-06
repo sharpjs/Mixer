@@ -425,6 +425,10 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         if (IsMixinType(symbol))
             return IdentifierName(TargetTypeNamePlaceholder);
 
+        // Replace name with keyword if possible
+        if (symbol.HasPredefinedName(out var keyword))
+            return PredefinedType(Token(keyword));
+
         // Visit LHS and dot
         var left  = (NameSyntax) Visit(node.Left)!; // Never null in this rewriter
         var dot   = VisitToken(node.DotToken);
@@ -445,6 +449,12 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         // Replace mixin name with placeholder
         if (IsMixinType(symbol))
             return IdentifierName(TargetTypeNamePlaceholder);
+
+#if ANY_PREDEFINED_TYPE_EXISTS_IN_GLOBAL_NAMESPACE
+        // Replace name with keyword if possible
+        if (symbol.HasPredefinedName(out var keyword))
+            return PredefinedType(Token(keyword));
+#endif
 
         // Visit LHS and colon
         var left  = (IdentifierNameSyntax) Visit(node.Alias)!; // Never null in this rewriter
@@ -520,10 +530,10 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
             case SymbolKind.Field     when symbol is IFieldSymbol     { IsStatic: true }:
             case SymbolKind.Property  when symbol is IPropertySymbol  { IsStatic: true }:
             case SymbolKind.Event     when symbol is IEventSymbol     { IsStatic: true }:
-                return Qualify(symbol).WithTriviaFrom(node);
+                return QualifyOrKeywordify(symbol).WithTriviaFrom(node);
 
             case SymbolKind.Method when symbol is IMethodSymbol { MethodKind: MethodKind.Constructor }:
-                return Qualify(symbol.ContainingType);
+                return QualifyOrKeywordify(symbol.ContainingType);
 
             case SymbolKind.TypeParameter:
                 return IdentifierName(_placeholders[symbol.Name]);

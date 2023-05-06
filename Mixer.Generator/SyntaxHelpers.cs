@@ -48,39 +48,75 @@ internal static class SyntaxHelpers
     public static QualifiedNameSyntax Dot(this NameSyntax lhs, string name)
         => QualifiedName(lhs, IdentifierName(name));
 
-    public static NameSyntax Qualify(ISymbol symbol, string? alias = "global")
-    // return: AliasQualifiedNameSyntax | QualifiedNameSyntax
+    public static TypeSyntax // AliasQualifiedNameSyntax | QualifiedNameSyntax | PredefinedTypeSyntax
+        QualifyOrKeywordify(ISymbol symbol, string? alias = "global")
+    {
+        if (symbol.HasPredefinedName(out var keyword))
+            return PredefinedType(Token(keyword));
+
+        return Qualify(symbol, alias);
+    }
+
+    public static NameSyntax // AliasQualifiedNameSyntax | QualifiedNameSyntax
+        Qualify(ISymbol symbol, string? alias = "global")
     {
         return QualifyCore(symbol, IdentifierName(symbol.Name), alias);
     }
 
-    public static NameSyntax Qualify(ISymbol symbol, SimpleNameSyntax name, string? alias = "global")
-    // return: AliasQualifiedNameSyntax | QualifiedNameSyntax
+    public static NameSyntax // AliasQualifiedNameSyntax | QualifiedNameSyntax
+        Qualify(ISymbol symbol, SimpleNameSyntax name, string? alias = "global")
     {
         return QualifyCore(symbol, name.WithoutTrivia(), alias).WithTriviaFrom(name);
     }
 
-    private static NameSyntax QualifyCore(ISymbol symbol, SimpleNameSyntax name, string? alias = "global")
-    // return: AliasQualifiedNameSyntax | QualifiedNameSyntax
+    private static NameSyntax // AliasQualifiedNameSyntax | QualifiedNameSyntax
+        QualifyCore(ISymbol symbol, SimpleNameSyntax name, string? alias = "global")
     {
+        var parent = symbol.ContainingSymbol;
+
+        if (parent is INamespaceSymbol { IsGlobalNamespace: true })
+            return alias is { Length: > 0 }
+                ? AliasQualifiedName(IdentifierName(alias), name)
+                : name;
+
+        return QualifiedName(Qualify(parent, alias), name);
+
         // NOTE: This method is not invoked in any context where a symbol could
         // have an empty name.
+    }
 
-    //  for (;;)
-    //  {
-            var parent = symbol.ContainingSymbol;
+    public static bool HasPredefinedName(this ISymbol? symbol, out SyntaxKind keyword)
+    {
+        if (symbol is ITypeSymbol type)
+            return type.HasPredefinedName(out keyword);
 
-            if (parent is INamespaceSymbol { IsGlobalNamespace: true })
-                return alias is { Length: > 0 }
-                    ? AliasQualifiedName(IdentifierName(alias), name)
-                    : name;
+        keyword = default;
+        return false;
+    }
 
-    //      if (parent.Name.Length > 0)
-                return QualifiedName(Qualify(parent, alias), name);
+    public static bool HasPredefinedName(this ITypeSymbol type, out SyntaxKind keyword)
+    {
+        keyword = type.SpecialType switch
+        {
+            SpecialType.System_Object  => SyntaxKind.ObjectKeyword,
+            SpecialType.System_Boolean => SyntaxKind.BoolKeyword,
+            SpecialType.System_Char    => SyntaxKind.CharKeyword,
+            SpecialType.System_SByte   => SyntaxKind.SByteKeyword,
+            SpecialType.System_Byte    => SyntaxKind.ByteKeyword,
+            SpecialType.System_Int16   => SyntaxKind.ShortKeyword,
+            SpecialType.System_UInt16  => SyntaxKind.UShortKeyword,
+            SpecialType.System_Int32   => SyntaxKind.IntKeyword,
+            SpecialType.System_UInt32  => SyntaxKind.UIntKeyword,
+            SpecialType.System_Int64   => SyntaxKind.LongKeyword,
+            SpecialType.System_UInt64  => SyntaxKind.ULongKeyword,
+            SpecialType.System_Decimal => SyntaxKind.DecimalKeyword,
+            SpecialType.System_Single  => SyntaxKind.FloatKeyword,
+            SpecialType.System_Double  => SyntaxKind.DoubleKeyword,
+            SpecialType.System_String  => SyntaxKind.StringKeyword,
+            _                          => SyntaxKind.None,
+        };
 
-    //      // Skip parent with empty name
-    //      symbol = parent;
-    //  }
+        return keyword is not SyntaxKind.None;
     }
 
     public static string GetPlaceholder(int index)
@@ -90,8 +126,6 @@ internal static class SyntaxHelpers
 
     public static SimpleNameSyntax GetNameWithGenericArguments(INamedTypeSymbol type)
     {
-        // TODO: Test edge cases here.
-
         if (!type.IsGenericType)
             return IdentifierName(type.Name);
 

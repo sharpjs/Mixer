@@ -106,7 +106,7 @@ internal class MixinSpecializer : CSharpSyntaxRewriter
             GenerateReplacements(dictionary, parent);
 
         foreach (var argument in type.TypeArguments)
-            dictionary.Add(GetPlaceholder(dictionary.Count), Qualify(argument));
+            dictionary.Add(GetPlaceholder(dictionary.Count), QualifyOrKeywordify(argument));
     }
 
     private TypeSyntax? GetReplacement(string name)
