@@ -423,11 +423,11 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
         // Replace mixin name with placeholder
         if (IsMixinType(symbol))
-            return IdentifierName(TargetTypeNamePlaceholder);
+            return IdentifierName(TargetTypeNamePlaceholder).WithTriviaFrom(node);
 
         // Replace name with keyword if possible
         if (symbol.HasPredefinedName(out var keyword))
-            return PredefinedType(Token(keyword));
+            return PredefinedType(Token(keyword)).WithTriviaFrom(node);
 
         // Visit LHS and dot
         var left  = (NameSyntax) Visit(node.Left)!; // Never null in this rewriter
@@ -448,12 +448,12 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
         // Replace mixin name with placeholder
         if (IsMixinType(symbol))
-            return IdentifierName(TargetTypeNamePlaceholder);
+            return IdentifierName(TargetTypeNamePlaceholder).WithTriviaFrom(node);
 
 #if ANY_PREDEFINED_TYPE_EXISTS_IN_GLOBAL_NAMESPACE
         // Replace name with keyword if possible
         if (symbol.HasPredefinedName(out var keyword))
-            return PredefinedType(Token(keyword));
+            return PredefinedType(Token(keyword)).WithTriviaFrom(node);
 #endif
 
         // Visit LHS and colon
@@ -486,7 +486,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
         // Replace mixin name with placeholder
         if (IsMixinType(symbol))
-            return IdentifierName(TargetTypeNamePlaceholder);
+            return IdentifierName(TargetTypeNamePlaceholder).WithTriviaFrom(node);
 
         node = (GenericNameSyntax) base.VisitGenericName(node)!;
 
