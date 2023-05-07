@@ -507,7 +507,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
         // Replace mixin name with placeholder
         if (IsMixinType(symbol))
-            return IdentifierName(TargetTypeNamePlaceholder);
+            return IdentifierName(TargetTypeNamePlaceholder).WithTriviaFrom(node);
 
         node = (IdentifierNameSyntax) base.VisitIdentifierName(node)!;
 
@@ -533,10 +533,10 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
                 return QualifyOrKeywordify(symbol).WithTriviaFrom(node);
 
             case SymbolKind.Method when symbol is IMethodSymbol { MethodKind: MethodKind.Constructor }:
-                return QualifyOrKeywordify(symbol.ContainingType);
+                return QualifyOrKeywordify(symbol.ContainingType).WithTriviaFrom(node);
 
             case SymbolKind.TypeParameter:
-                return IdentifierName(_placeholders[symbol.Name]);
+                return IdentifierName(_placeholders[symbol.Name]).WithTriviaFrom(node);
 
             default:
                 return node;

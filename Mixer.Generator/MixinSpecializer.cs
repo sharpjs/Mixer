@@ -82,7 +82,7 @@ internal class MixinSpecializer : CSharpSyntaxRewriter
 
     public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
     {
-        return GetReplacement(node.Identifier.ValueText)
+        return GetReplacement(node.Identifier.ValueText)?.WithTriviaFrom(node)
             ?? base.VisitIdentifierName(node);
     }
 
