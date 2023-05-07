@@ -107,6 +107,9 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
 
     public override SyntaxToken VisitToken(SyntaxToken token)
     {
+        if (token.IsKind(SyntaxKind.None))
+            return token;
+
         var leadingTrivia = VisitLeadingTrivia(token.LeadingTrivia);
 
         if (token.Span.Length > 0)
