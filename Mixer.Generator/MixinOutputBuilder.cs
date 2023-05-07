@@ -72,20 +72,9 @@ internal ref struct MixinOutputBuilder
         );
     }
 
-    private MemberDeclarationSyntax MakeBlockScopedNamespace(NameSyntax name)
+    private ImmutableArray<MemberDeclarationSyntax> RenderMixinsInGlobalNamespace()
     {
-        return NamespaceDeclaration(
-            attributeLists:   default,
-            modifiers:        default,
-            namespaceKeyword: Token(MakePreamble(), K.NamespaceKeyword, TriviaList(Space)),
-            name:             name.WithTrailingTrivia(_endOfLine),
-            openBraceToken:   Token(default, K.OpenBraceToken, TriviaList(_endOfLine)),
-            externs:          default,
-            usings:           default,
-            members:          List(RenderMixinsIndented()),
-            closeBraceToken:  Token(default, K.CloseBraceToken, TriviaList(_endOfLine)),
-            semicolonToken:   default
-        );
+        return RenderMixins().AddLeadingTrivia(MakePreamble());
     }
 
     private MemberDeclarationSyntax MakeFileScopedNamespace(NameSyntax name)
@@ -102,6 +91,26 @@ internal ref struct MixinOutputBuilder
         );
     }
 
+    private MemberDeclarationSyntax MakeBlockScopedNamespace(NameSyntax name)
+    {
+        var oldIndent = Indent();
+        var content   = RenderMixins();
+        Restore(oldIndent);
+
+        return NamespaceDeclaration(
+            attributeLists:   default,
+            modifiers:        default,
+            namespaceKeyword: Token(MakePreamble(), K.NamespaceKeyword, TriviaList(Space)),
+            name:             name.WithTrailingTrivia(_endOfLine),
+            openBraceToken:   Token(default, K.OpenBraceToken, TriviaList(_endOfLine)),
+            externs:          default,
+            usings:           default,
+            members:          List(content),
+            closeBraceToken:  Token(default, K.CloseBraceToken, TriviaList(_endOfLine)),
+            semicolonToken:   default
+        );
+    }
+
     private SyntaxTriviaList MakePreamble()
     {
         return TriviaList(
@@ -111,21 +120,6 @@ internal ref struct MixinOutputBuilder
             Comment("// </auto-generated>"),                                            _endOfLine,
             _endOfLine
         );
-    }
-
-    private ImmutableArray<MemberDeclarationSyntax> RenderMixinsInGlobalNamespace()
-    {
-        return RenderMixins().AddLeadingTrivia(MakePreamble());
-    }
-
-    private ImmutableArray<MemberDeclarationSyntax> RenderMixinsIndented()
-    {
-        var oldIndent = Indent();
-
-        var mixins = RenderMixins();
-
-        Restore(oldIndent);
-        return mixins;
     }
 
     private ImmutableArray<MemberDeclarationSyntax> RenderMixins()
@@ -140,18 +134,123 @@ internal ref struct MixinOutputBuilder
 
     private MemberDeclarationSyntax RenderMixin(Mixin mixin)
     {
+        var oldIndents = IndentForNesting();
+        var rendered   = Nest(oldIndents, RenderMixinCore(mixin));
+
+        return _version.SupportsNullableAnalysis()
+            ? WrapInTriviaWithNullable   (mixin, rendered)
+            : WrapInTriviaWithoutNullable(mixin, rendered);
+    }
+
+    private int[] IndentForNesting()
+    {
+        var count = 0;
+
+        for (var type = _targetType; type.ContainingType is { } container; type = container)
+            count++;
+
+        if (count == 0)
+            return Array.Empty<int>();
+
+        var indents = new int[count];
+
+        for (var i = 0; i < indents.Length; i++)
+            indents[i] = Indent();
+
+        return indents;
+    }
+
+    private TypeDeclarationSyntax Nest(int[] oldIndents, TypeDeclarationSyntax declaration)
+    {
+        var type = _targetType;
+
+        for (var i = oldIndents.Length - 1; i >= 0; i--)
+        {
+            Restore(oldIndents[i]);
+            declaration = MakeType(type = type.ContainingType!, declaration);
+        }
+
+        return declaration;
+    }
+
+    private TypeDeclarationSyntax MakeType(INamedTypeSymbol type, MemberDeclarationSyntax member)
+    {
+        return type switch
+        {
+            { IsRecord:    true } => MakeRecord(type, member),
+            { IsValueType: true } => MakeStruct(type, member),
+            _                     => MakeClass (type, member),
+        };
+    }
+
+    private TypeDeclarationSyntax MakeClass(INamedTypeSymbol type, MemberDeclarationSyntax member)
+    {
+        return ClassDeclaration(
+            attributeLists:    default,
+            modifiers:         TokenList(Token(IndentationList(), K.PartialKeyword, OneSpace())),
+            keyword:           TokenAndSpace(K.ClassKeyword),
+            identifier:        RenderIdentifier(type),
+            typeParameterList: RenderTypeParameterList(type),
+            baseList:          default,
+            constraintClauses: RenderConstraintClauses(type),
+            openBraceToken:    Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
+            members:           SingletonList(member),
+            closeBraceToken:   Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
+            semicolonToken:    default
+        );
+    }
+
+    private TypeDeclarationSyntax MakeStruct(INamedTypeSymbol type, MemberDeclarationSyntax member)
+    {
+        return StructDeclaration(
+            attributeLists:    default,
+            modifiers:         TokenList(Token(IndentationList(), K.PartialKeyword, OneSpace())),
+            keyword:           TokenAndSpace(K.StructKeyword),
+            identifier:        RenderIdentifier(type),
+            typeParameterList: RenderTypeParameterList(type),
+            baseList:          default,
+            constraintClauses: RenderConstraintClauses(type),
+            openBraceToken:    Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
+            members:           SingletonList(member),
+            closeBraceToken:   Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
+            semicolonToken:    default
+        );
+    }
+
+    private TypeDeclarationSyntax MakeRecord(INamedTypeSymbol type, MemberDeclarationSyntax member)
+    {
+        var (declarationKind, keywordKind) = type.IsReferenceType
+            ? (K.RecordDeclaration,       K.ClassKeyword)
+            : (K.RecordStructDeclaration, K.StructKeyword);
+
+        return RecordDeclaration(
+            kind:                 declarationKind,
+            attributeLists:       default,
+            modifiers:            TokenList(Token(IndentationList(), K.PartialKeyword, OneSpace())),
+            keyword:              TokenAndSpace(K.RecordKeyword),
+            classOrStructKeyword: TokenAndSpace(keywordKind),
+            identifier:           RenderIdentifier(type),
+            typeParameterList:    RenderTypeParameterList(type),
+            parameterList:        default,
+            baseList:             default,
+            constraintClauses:    RenderConstraintClauses(type),
+            openBraceToken:       Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
+            members:              SingletonList(member),
+            closeBraceToken:      Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
+            semicolonToken:       default
+        );
+    }
+
+    private TypeDeclarationSyntax RenderMixinCore(Mixin mixin)
+    {
         var content = Specialize(mixin);
 
-        var rendered = _targetType switch
+        return _targetType switch
         {
             { IsRecord:    true } => RenderMixinToRecord(content),
             { IsValueType: true } => RenderMixinToStruct(content),
             _                     => RenderMixinToClass (content),
         };
-
-        return _version.SupportsNullableAnalysis()
-            ? WrapInTriviaWithNullable   (mixin, rendered)
-            : WrapInTriviaWithoutNullable(mixin, rendered);
     }
 
     private TypeDeclarationSyntax Specialize(Mixin mixin)
@@ -167,10 +266,10 @@ internal ref struct MixinOutputBuilder
             attributeLists:    Normalize(content.AttributeLists),
             modifiers:         TokenList(Token(IndentationList(), K.PartialKeyword, OneSpace())),
             keyword:           TokenAndSpace(K.ClassKeyword),
-            identifier:        RenderTargetIdentifier(),
-            typeParameterList: RenderTypeParameterList(),
+            identifier:        RenderIdentifier(_targetType),
+            typeParameterList: RenderTypeParameterList(_targetType),
             baseList:          Normalize(content.BaseList),
-            constraintClauses: RenderConstraintClauses(),
+            constraintClauses: RenderConstraintClauses(_targetType),
             openBraceToken:    Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
             members:           Normalize(content.Members),
             closeBraceToken:   Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
@@ -184,10 +283,10 @@ internal ref struct MixinOutputBuilder
             attributeLists:    Normalize(content.AttributeLists),
             modifiers:         TokenList(Token(IndentationList(), K.PartialKeyword, OneSpace())),
             keyword:           TokenAndSpace(K.StructKeyword),
-            identifier:        RenderTargetIdentifier(),
-            typeParameterList: RenderTypeParameterList(),
+            identifier:        RenderIdentifier(_targetType),
+            typeParameterList: RenderTypeParameterList(_targetType),
             baseList:          Normalize(content.BaseList),
-            constraintClauses: RenderConstraintClauses(),
+            constraintClauses: RenderConstraintClauses(_targetType),
             openBraceToken:    Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
             members:           Normalize(content.Members),
             closeBraceToken:   Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
@@ -207,11 +306,11 @@ internal ref struct MixinOutputBuilder
             modifiers:            TokenList(Token(IndentationList(), K.PartialKeyword, OneSpace())),
             keyword:              TokenAndSpace(K.RecordKeyword),
             classOrStructKeyword: TokenAndSpace(keywordKind),
-            identifier:           RenderTargetIdentifier(),
-            typeParameterList:    RenderTypeParameterList(),
+            identifier:           RenderIdentifier(_targetType),
+            typeParameterList:    RenderTypeParameterList(_targetType),
             parameterList:        default,
             baseList:             Normalize(content.BaseList),
-            constraintClauses:    RenderConstraintClauses(),
+            constraintClauses:    RenderConstraintClauses(_targetType),
             openBraceToken:       Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
             members:              Normalize(content.Members),
             closeBraceToken:      Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
@@ -236,21 +335,21 @@ internal ref struct MixinOutputBuilder
         return new SpaceNormalizer().Normalize(members, _indent + IndentSize);
     }
 
-    private SyntaxToken RenderTargetIdentifier()
+    private SyntaxToken RenderIdentifier(INamedTypeSymbol type)
     {
-        var trailingTrivia = _targetType.Arity != 0 ? default : OneEndOfLine();
+        var trailingTrivia = type.Arity != 0 ? default : OneEndOfLine();
 
-        return Identifier(default, _targetType.Name, trailingTrivia);
+        return Identifier(default, type.Name, trailingTrivia);
     }
 
-    private TypeParameterListSyntax? RenderTypeParameterList()
+    private TypeParameterListSyntax? RenderTypeParameterList(INamedTypeSymbol type)
     {
-        if (_targetType.Arity == 0)
+        if (type.Arity == 0)
             return default;
 
         return TypeParameterList(
             lessThanToken:    Token(K.LessThanToken),
-            parameters:       MakeCommaSeparatedList(_targetType.TypeParameters, RenderTypeParameter),
+            parameters:       MakeCommaSeparatedList(type.TypeParameters, RenderTypeParameter),
             greaterThanToken: Token(default, K.GreaterThanToken, OneEndOfLine())
         );
     }
@@ -274,14 +373,14 @@ internal ref struct MixinOutputBuilder
         };
     }
 
-    private SyntaxList<TypeParameterConstraintClauseSyntax> RenderConstraintClauses()
+    private SyntaxList<TypeParameterConstraintClauseSyntax> RenderConstraintClauses(INamedTypeSymbol type)
     {
-        if (_targetType.Arity == 0)
+        if (type.Arity == 0)
             return default;
 
         var count = 0;
 
-        foreach (var parameter in _targetType.TypeParameters)
+        foreach (var parameter in type.TypeParameters)
             if (parameter.HasConstraints())
                 count++;
 
@@ -290,7 +389,7 @@ internal ref struct MixinOutputBuilder
 
         var array = ImmutableArray.CreateBuilder<TypeParameterConstraintClauseSyntax>(count);
 
-        foreach (var parameter in _targetType.TypeParameters)
+        foreach (var parameter in type.TypeParameters)
             if (parameter.HasConstraints())
                 array.Add(RenderConstraintClause(parameter));
 
@@ -439,7 +538,11 @@ internal ref struct MixinOutputBuilder
     }
 
     private int Indent()
-        => _indent += IndentSize;
+    {
+        var oldIndent = _indent;
+        _indent = oldIndent + IndentSize;
+        return oldIndent;
+    }
 
     private void Restore(int level)
         => _indent = level;
