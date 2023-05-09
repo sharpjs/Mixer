@@ -523,14 +523,18 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
         switch (symbol.Kind)
         {
-            case SymbolKind.NamedType:
             case SymbolKind.Namespace when symbol is INamespaceSymbol { IsGlobalNamespace: false }:
-            case SymbolKind.Method    when symbol is IMethodSymbol    { MethodKind: MethodKind.Ordinary, IsStatic: true }:
-            case SymbolKind.Method    when symbol is IMethodSymbol    { MethodKind: MethodKind.ReducedExtension }:
-            case SymbolKind.Field     when symbol is IFieldSymbol     { IsStatic: true }:
-            case SymbolKind.Property  when symbol is IPropertySymbol  { IsStatic: true }:
-            case SymbolKind.Event     when symbol is IEventSymbol     { IsStatic: true }:
                 return QualifyOrKeywordify(symbol).WithTriviaFrom(node);
+
+            case SymbolKind.NamedType:
+            case SymbolKind.Method    when symbol is IMethodSymbol   { MethodKind: MethodKind.Ordinary, IsStatic: true }:
+            case SymbolKind.Method    when symbol is IMethodSymbol   { MethodKind: MethodKind.ReducedExtension }:
+            case SymbolKind.Field     when symbol is IFieldSymbol    { IsStatic: true }:
+            case SymbolKind.Property  when symbol is IPropertySymbol { IsStatic: true }:
+            case SymbolKind.Event     when symbol is IEventSymbol    { IsStatic: true }:
+                return IsMixinType(symbol.ContainingType)
+                    ? MakeMemberAccessOnTargetType(node).WithTriviaFrom(node)
+                    : QualifyOrKeywordify(symbol).WithTriviaFrom(node);
 
             case SymbolKind.Method when symbol is IMethodSymbol { MethodKind: MethodKind.Constructor }:
                 return QualifyOrKeywordify(symbol.ContainingType).WithTriviaFrom(node);
@@ -543,9 +547,13 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         }
     }
 
-    private bool IsMixinType(ISymbol? symbol)
+    private MemberAccessExpressionSyntax MakeMemberAccessOnTargetType(IdentifierNameSyntax node)
     {
-        return SymbolEqualityComparer.Default.Equals(symbol, _mixinType);
+        return MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            IdentifierName(TargetTypeNamePlaceholder),
+            node.WithoutTrivia()
+        );
     }
 
     #endregion
@@ -589,6 +597,11 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
     private ITypeSymbol? GetType(AttributeSyntax node)
         => _semanticModel.GetTypeInfo(node, _cancellation).ConvertedType;
+
+    private bool IsMixinType(ISymbol? symbol)
+    {
+        return SymbolEqualityComparer.Default.Equals(symbol, _mixinType);
+    }
 
     private bool IsMixinMarker(AttributeSyntax node)
     {

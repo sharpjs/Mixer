@@ -27,7 +27,7 @@ namespace Mixer;
 internal class MixinSpecializer : CSharpSyntaxRewriter
 {
     private readonly INamedTypeSymbol                        _targetType;
-    private /*lazy*/ SimpleNameSyntax?                       _targetName;
+    private /*lazy*/ NameSyntax?                             _targetName;
     private readonly ImmutableDictionary<string, TypeSyntax> _replacements;
 
     /// <summary>
@@ -44,8 +44,8 @@ internal class MixinSpecializer : CSharpSyntaxRewriter
         _replacements = GenerateReplacements(mixinType);
     }
 
-    private SimpleNameSyntax TargetName
-        => _targetName ??= GetNameWithGenericArguments(_targetType);
+    private NameSyntax TargetName
+        => _targetName ??= Qualify(_targetType, GetNameWithGenericArguments(_targetType));
 
     /// <summary>
     ///   Converts a mixin from the generalized form produced by

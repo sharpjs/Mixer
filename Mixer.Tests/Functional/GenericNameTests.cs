@@ -231,7 +231,7 @@ public class GenericNameTests
             partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                public void Foo(Target? other) { }
+                public void Foo(global::Test.Target? other) { }
             }
 
             #nullable restore
@@ -277,7 +277,7 @@ public class GenericNameTests
             partial $target Target<T0, T1>
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                void Foo(Target<T0, T1>? other) { }
+                void Foo(global::Test.Target<T0, T1>? other) { }
             }
 
             #nullable restore

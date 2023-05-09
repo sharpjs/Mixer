@@ -49,7 +49,7 @@ public class OperatorTests
             partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                public static Target operator +(Target a, Target b)
+                public static global::Test.Target operator +(global::Test.Target a, global::Test.Target b)
                 {
                     throw new global::System.NotImplementedException();
                 }
@@ -105,7 +105,7 @@ public class OperatorTests
             partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                public static implicit operator string(Target a)
+                public static implicit operator string(global::Test.Target a)
                 {
                     throw new global::System.NotImplementedException();
                 }

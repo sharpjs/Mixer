@@ -140,7 +140,7 @@ public class QualifiedNameTests
             partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                Target? PropertyWhoseTypeIsMixinType => default;
+                global::Test.Target? PropertyWhoseTypeIsMixinType => default;
             }
 
             #nullable restore

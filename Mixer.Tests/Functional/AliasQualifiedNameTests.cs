@@ -91,7 +91,7 @@ public class AliasQualifiedNameTests
             partial $target Target
             {
                 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Mixer.Generator", "0.0.0.0")]
-                Target?
+                global::Target?
                     PropertyWhoseTypeIsMixinType => default;
             }
 
