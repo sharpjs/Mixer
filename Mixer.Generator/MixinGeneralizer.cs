@@ -490,12 +490,12 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
         node = (GenericNameSyntax) base.VisitGenericName(node)!;
 
-        // Further qualify a qualified name only when in its LHS
-        if (_isRhsOfQualifiedName)
-            return node;
-
         if (symbol is null)
             return node;
+
+        // Further qualify a qualified name only when in its LHS
+        if (_isRhsOfQualifiedName)
+            return node.WithIdentifier(VisitRhsIdentifierOfQualifiedName(node.Identifier, symbol));
 
         return Qualify(symbol, node);
     }
@@ -511,14 +511,14 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
         node = (IdentifierNameSyntax) base.VisitIdentifierName(node)!;
 
+        if (symbol is null)
+            return node;
+
         // Further qualify a qualified name only when in its LHS
         if (_isRhsOfQualifiedName)
-            return node;
+            return node.WithIdentifier(VisitRhsIdentifierOfQualifiedName(node.Identifier, symbol));
 
         if (node.IsVar)
-            return node;
-
-        if (symbol is null)
             return node;
 
         switch (symbol.Kind)
@@ -545,6 +545,17 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
             default:
                 return node;
         }
+    }
+
+    private static SyntaxToken VisitRhsIdentifierOfQualifiedName(SyntaxToken identifier, ISymbol symbol)
+    {
+        if (symbol is not IMethodSymbol { MethodKind: MethodKind.Constructor })
+            return identifier;
+
+        if (symbol.ContainingType.Name == identifier.Text)
+            return identifier;
+
+        return Identifier(symbol.ContainingType.Name).WithTriviaFrom(identifier);
     }
 
     private MemberAccessExpressionSyntax MakeMemberAccessOnTargetType(IdentifierNameSyntax node)
