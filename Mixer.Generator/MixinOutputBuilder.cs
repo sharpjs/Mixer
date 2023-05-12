@@ -272,7 +272,7 @@ internal ref struct MixinOutputBuilder
             constraintClauses: RenderConstraintClauses(_targetType),
             openBraceToken:    Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
             members:           Normalize(content.Members),
-            closeBraceToken:   Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
+            closeBraceToken:   NormalizeCloseBrace(content.CloseBraceToken),
             semicolonToken:    default
         );
     }
@@ -289,7 +289,7 @@ internal ref struct MixinOutputBuilder
             constraintClauses: RenderConstraintClauses(_targetType),
             openBraceToken:    Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
             members:           Normalize(content.Members),
-            closeBraceToken:   Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
+            closeBraceToken:   NormalizeCloseBrace(content.CloseBraceToken),
             semicolonToken:    default
         );
     }
@@ -313,7 +313,7 @@ internal ref struct MixinOutputBuilder
             constraintClauses:    RenderConstraintClauses(_targetType),
             openBraceToken:       Token(IndentationList(), K.OpenBraceToken, OneEndOfLine()),
             members:              Normalize(content.Members),
-            closeBraceToken:      Token(IndentationList(), K.CloseBraceToken, OneEndOfLine()),
+            closeBraceToken:      NormalizeCloseBrace(content.CloseBraceToken),
             semicolonToken:       default
         );
     }
@@ -333,6 +333,55 @@ internal ref struct MixinOutputBuilder
     private SyntaxList<MemberDeclarationSyntax> Normalize(SyntaxList<MemberDeclarationSyntax> members)
     {
         return new SpaceNormalizer().Normalize(members, _indent + IndentSize);
+    }
+
+    private SyntaxToken NormalizeCloseBrace(SyntaxToken token)
+    {
+        var leadingTrivia = NormalizeCloseBraceLeadingTrivia(token.LeadingTrivia);
+
+        return Token(leadingTrivia, K.CloseBraceToken, OneEndOfLine());
+    }
+
+    private SyntaxTriviaList NormalizeCloseBraceLeadingTrivia(SyntaxTriviaList trivia)
+    {
+        if (IsEmptyOrSpace(trivia))
+            return IndentationList();
+
+        trivia = new SpaceNormalizer().Normalize(trivia, _indent + IndentSize);
+
+        if (EndsWithIndentation(trivia))
+            trivia.RemoveAt(trivia.Count - 1);
+
+        if (EndsWithEndOfLine(trivia) && _indent > 0)
+            trivia.Add(IndentationCore());
+
+        return trivia;
+    }
+
+    private bool IsEmptyOrSpace(SyntaxTriviaList trivia)
+    {
+        foreach (var item in trivia)
+            if (!item.IsKind(K.WhitespaceTrivia))
+                return false;
+
+        return true;
+    }
+
+    private static bool EndsWithEndOfLine(SyntaxTriviaList trivia)
+    {
+        var count = trivia.Count;
+
+        return count >= 1
+            && trivia[count - 1].IsKind(K.EndOfLineTrivia);
+    }
+
+    private static bool EndsWithIndentation(SyntaxTriviaList trivia)
+    {
+        var count = trivia.Count;
+
+        return count >= 2
+            && trivia[count - 2].IsKind(K.EndOfLineTrivia)
+            && trivia[count - 1].IsKind(K.WhitespaceTrivia);
     }
 
     private SyntaxToken RenderIdentifier(INamedTypeSymbol type)

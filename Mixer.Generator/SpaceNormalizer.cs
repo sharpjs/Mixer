@@ -99,10 +99,62 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         return VisitList(nodes);
     }
 
+#if WANT_TO_NORMALIZE_A_TOKEN
+    public SyntaxToken Normalize(SyntaxToken token, int indent)
+    {
+        if (indent < 0)
+            throw new ArgumentOutOfRangeException(nameof(indent));
+
+        Reset(token, indent);
+
+        return VisitToken(token);
+    }
+#endif
+
+    /// <summary>
+    ///   Normalizes the indentation and line endings of each element in the
+    ///   specified trivia list.
+    /// </summary>
+    /// <param name="trivia">
+    ///   The list of trivia to normalize.
+    /// </param>
+    /// <param name="indent">
+    ///   The desired indentation, in columns.
+    /// </param>
+    /// <returns>
+    ///   <paramref name="trivia"/>, each shifted left or right so that it is
+    ///   indented by <paramref name="indent"/> columns, and each with line
+    ///   endings replaced by the platform's preferred line ending.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///   <paramref name="indent"/> is negative.
+    /// </exception>
+    public SyntaxTriviaList Normalize(SyntaxTriviaList trivia, int indent)
+    {
+        if (indent < 0)
+            throw new ArgumentOutOfRangeException(nameof(indent));
+
+        Reset(trivia, indent);
+
+        return trivia.Any() ? VisitListCore(trivia) : trivia;
+    }
+
     private void Reset(SyntaxNode node, int indent)
     {
+        Reset(node.GetLeadingTrivia(), indent);
+    }
+
+#if WANT_TO_NORMALIZE_A_TOKEN
+    private void Reset(SyntaxToken token, int indent)
+    {
+        Reset(token.LeadingTrivia, indent);
+    }
+#endif
+
+    private void Reset(SyntaxTriviaList trivia, int indent)
+    {
         _state = State.Initial;
-        _shift = indent - DetectIndent(node);
+        _shift = indent - DetectIndent(trivia);
     }
 
     public override SyntaxToken VisitToken(SyntaxToken token)
@@ -268,9 +320,9 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         return Max(RoundUpToPowerOf2(requested), minimum);
     }
 
-    private static int DetectIndent(SyntaxNode node)
+    private static int DetectIndent(SyntaxTriviaList leadingTrivia)
     {
-        foreach (var trivia in node.GetLeadingTrivia())
+        foreach (var trivia in leadingTrivia)
         {
             switch (trivia.Kind())
             {

@@ -137,20 +137,26 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
     private static ClassDeclarationSyntax MixinDeclaration(ClassDeclarationSyntax node)
     {
         return ClassDeclaration(
-            node.AttributeLists, default,
-            node.Identifier,     default,
-            node.BaseList,       default,
-            node.Members
+            node.AttributeLists,  modifiers: default,
+            node.Keyword,
+            node.Identifier,      typeParameterList: default,
+            node.BaseList,        constraintClauses: default,
+            node.OpenBraceToken,
+            node.Members,
+            node.CloseBraceToken, semicolonToken: default
         );
     }
 
     private static StructDeclarationSyntax MixinDeclaration(StructDeclarationSyntax node)
     {
         return StructDeclaration(
-            node.AttributeLists, default,
-            node.Identifier,     default,
-            node.BaseList,       default,
-            node.Members
+            node.AttributeLists,  modifiers: default,
+            node.Keyword,
+            node.Identifier,      typeParameterList: default,
+            node.BaseList,        constraintClauses: default,
+            node.OpenBraceToken,
+            node.Members,
+            node.CloseBraceToken, semicolonToken: default
         );
     }
 
@@ -158,11 +164,14 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
     {
         return RecordDeclaration(
             node.Kind(),
-            node.AttributeLists, default,
-            node.Keyword,
-            node.Identifier,     default, default,
-            node.BaseList,       default,
-            node.Members
+            node.AttributeLists,  modifiers:            default,
+            node.Keyword,         classOrStructKeyword: default,
+            node.Identifier,      typeParameterList:    default, parameterList: default,
+            node.BaseList,        constraintClauses:    default,
+            node.OpenBraceToken,
+            node.Members,
+            node.CloseBraceToken,
+            node.SemicolonToken
         );
     }
 
