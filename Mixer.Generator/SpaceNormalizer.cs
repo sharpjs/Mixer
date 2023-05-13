@@ -134,9 +134,12 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         if (indent < 0)
             throw new ArgumentOutOfRangeException(nameof(indent));
 
+        if (!trivia.Any())
+            return trivia;
+
         Reset(trivia, indent);
 
-        return trivia.Any() ? VisitListCore(trivia) : trivia;
+        return VisitListCore(trivia);
     }
 
     private void Reset(SyntaxNode node, int indent)

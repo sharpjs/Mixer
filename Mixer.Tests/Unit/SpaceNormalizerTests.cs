@@ -18,10 +18,26 @@ public class SpaceNormalizerTests
     }
 
     [Test]
-    public void Normalize_List_NegativeIndent()
+    public void Normalize_NodeList_NegativeIndent()
     {
         new SpaceNormalizer()
             .Invoking(n => n.Normalize(SingletonList(EmptyStatement()), -1))
             .Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Test]
+    public void Normalize_TriviaList_NegativeIndent()
+    {
+        new SpaceNormalizer()
+            .Invoking(n => n.Normalize(TriviaList(), -1))
+            .Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Test]
+    public void Normalize_TriviaList_Empty()
+    {
+        var original = TriviaList();
+
+        new SpaceNormalizer().Normalize(original, 4).Should().Equal(original);
     }
 }

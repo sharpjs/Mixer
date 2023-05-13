@@ -681,6 +681,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         where T : MemberDeclarationSyntax
     {
         var trivia = node.GetLeadingTrivia();
+
         return (T) node
             .WithLeadingTrivia(GetIndentationFrom(trivia))
             .AddAttributeLists(MakeGeneratedCodeAttributeList(trivia));
@@ -688,20 +689,11 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
     private SyntaxTriviaList GetIndentationFrom(SyntaxTriviaList list)
     {
-        var indent      = default(SyntaxTrivia);
-        var atLineStart = true;
+        var indent = IndentationDetector.Detect(list);
 
-        foreach (var trivia in list)
-        {
-            (indent, atLineStart) = trivia.Kind() switch
-            {
-                SyntaxKind.WhitespaceTrivia when atLineStart => (trivia,  false),
-                SyntaxKind.EndOfLineTrivia                   => (default, true ),
-                _                                            => (default, false),
-            };
-        }
-
-        return indent.IsKind(SyntaxKind.None) ? TriviaList() : TriviaList(indent);
+        return indent.IsKind(SyntaxKind.None)
+            ? TriviaList()
+            : TriviaList(indent);
     }
 
     private AttributeListSyntax MakeGeneratedCodeAttributeList(SyntaxTriviaList leadingTrivia)

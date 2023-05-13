@@ -349,11 +349,13 @@ internal ref struct MixinOutputBuilder
 
         trivia = new SpaceNormalizer().Normalize(trivia, _indent + IndentSize);
 
+#if FIGURE_OUT_HOW_TO_MAKE_THIS_WORK
         if (EndsWithIndentation(trivia))
             trivia.RemoveAt(trivia.Count - 1);
 
         if (EndsWithEndOfLine(trivia) && _indent > 0)
             trivia.Add(IndentationCore());
+#endif
 
         return trivia;
     }
@@ -367,6 +369,7 @@ internal ref struct MixinOutputBuilder
         return true;
     }
 
+#if FIGURE_OUT_HOW_TO_MAKE_THIS_WORK
     private static bool EndsWithEndOfLine(SyntaxTriviaList trivia)
     {
         var count = trivia.Count;
@@ -383,6 +386,7 @@ internal ref struct MixinOutputBuilder
             && trivia[count - 2].IsKind(K.EndOfLineTrivia)
             && trivia[count - 1].IsKind(K.WhitespaceTrivia);
     }
+#endif
 
     private SyntaxToken RenderIdentifier(INamedTypeSymbol type)
     {
