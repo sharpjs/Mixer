@@ -15,7 +15,27 @@ internal ref struct SyntaxTriviaListEditor
         _oldList = list;
     }
 
-    public void Add(SyntaxTrivia trivia, bool different)
+    public void Skip()
+    {
+        _different = true;
+    }
+
+    public void Copy(SyntaxTrivia trivia)
+    {
+        Add(trivia, different: false);
+    }
+
+    public void Add(SyntaxTrivia trivia)
+    {
+        Add(trivia, different: true);
+    }
+
+    public void Add(SyntaxTrivia trivia, SyntaxTrivia original)
+    {
+        Add(trivia, different: !trivia.IsEquivalentTo(original));
+    }
+
+    private void Add(SyntaxTrivia trivia, bool different)
     {
         // Until difference is found, increment the count of identical items
         if (!(_different |= different))

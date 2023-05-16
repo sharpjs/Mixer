@@ -347,17 +347,7 @@ internal ref struct MixinOutputBuilder
         if (IsEmptyOrSpace(trivia))
             return IndentationList();
 
-        trivia = new SpaceNormalizer().Normalize(trivia, _indent + IndentSize);
-
-#if FIGURE_OUT_HOW_TO_MAKE_THIS_WORK
-        if (EndsWithIndentation(trivia))
-            trivia.RemoveAt(trivia.Count - 1);
-
-        if (EndsWithEndOfLine(trivia) && _indent > 0)
-            trivia.Add(IndentationCore());
-#endif
-
-        return trivia;
+        return new SpaceNormalizer().Normalize(trivia, _indent + IndentSize);
     }
 
     private bool IsEmptyOrSpace(SyntaxTriviaList trivia)
@@ -368,25 +358,6 @@ internal ref struct MixinOutputBuilder
 
         return true;
     }
-
-#if FIGURE_OUT_HOW_TO_MAKE_THIS_WORK
-    private static bool EndsWithEndOfLine(SyntaxTriviaList trivia)
-    {
-        var count = trivia.Count;
-
-        return count >= 1
-            && trivia[count - 1].IsKind(K.EndOfLineTrivia);
-    }
-
-    private static bool EndsWithIndentation(SyntaxTriviaList trivia)
-    {
-        var count = trivia.Count;
-
-        return count >= 2
-            && trivia[count - 2].IsKind(K.EndOfLineTrivia)
-            && trivia[count - 1].IsKind(K.WhitespaceTrivia);
-    }
-#endif
 
     private SyntaxToken RenderIdentifier(INamedTypeSymbol type)
     {

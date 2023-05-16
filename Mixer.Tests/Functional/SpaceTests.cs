@@ -248,7 +248,7 @@ public class SpaceTests
                 // A comment is unstructured trivia that is neither space nor end-of-line
                 public void Foo() { }
             #nullable restore
-            }
+              } // To test special case: final indentation of leading trivia of final closing brace
 
             [Include<Source>]
             partial $target Target { }

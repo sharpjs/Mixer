@@ -3,6 +3,7 @@
 
 namespace Mixer;
 
+using System.IO.IsolatedStorage;
 using static Math;
 using static MathEx;
 
@@ -14,6 +15,9 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
     private State      _state;  // overall state
     private int        _shift;  // count of spaces to +add to indentation (may be negative)
     private string?[]? _spaces; // indentation string cache
+
+    private int _finalIndent;
+    private int _endPosition;
 
     private readonly SyntaxTrivia _endOfLine; // end-of-line trivia
 
@@ -139,6 +143,9 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
 
         Reset(trivia, indent);
 
+        _finalIndent = indent - IndentSize;
+        _endPosition = trivia.Last().FullSpan.End;
+
         return VisitListCore(trivia);
     }
 
@@ -158,6 +165,9 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
     {
         _state = State.Initial;
         _shift = indent - DetectIndent(trivia);
+
+        _finalIndent = 0;
+        _endPosition = int.MinValue;
     }
 
     public override SyntaxToken VisitToken(SyntaxToken token)
@@ -190,11 +200,16 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         // whitespace trivia.  To handle that case, visit some imaginary
         // preceding whitespace trivia to allow the rewriter a chance to
         // synthesize any necessary indentation and update state.
-        var newTrivia = VisitWhitespaceTrivia();
+        if (_state != State.Interior)
+        {
+            var newTrivia = Reindent(default);
+            _state = State.Interior; // TODO: if length is different than zero
 
-        return newTrivia.IsKind(SyntaxKind.None)
-            ? list
-            : TriviaList(newTrivia);
+            if (newTrivia.IsSome())
+                return TriviaList(newTrivia);
+        }
+
+        return list;
     }
 
     public SyntaxTriviaList VisitTrailingTrivia(SyntaxTriviaList list)
@@ -209,22 +224,120 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
     {
         var editor = new SyntaxTriviaListEditor(list);
 
-        foreach (var oldTrivia in list)
+        foreach (var trivia in list)
         {
-            var newTrivia = oldTrivia.Kind() switch
-            {
-                SyntaxKind.WhitespaceTrivia => VisitWhitespaceTrivia(oldTrivia),
-                SyntaxKind.EndOfLineTrivia  => VisitEndOfLineTrivia (oldTrivia),
-                _                           => VisitOtherTrivia     (oldTrivia, editor),
-            };
+            var isLast = trivia.FullSpan.End == _endPosition;
 
-            var different = !newTrivia.IsEquivalentTo(oldTrivia) || oldTrivia.IsNone();
-            editor.Add(newTrivia, different);
+            switch (trivia.Kind())
+            {
+                case SyntaxKind.None:
+                    editor.Skip();
+                    break;
+
+                case SyntaxKind.WhitespaceTrivia:
+                    VisitWhitespaceTrivia(trivia, ref editor, isLast);
+                    break;
+
+                case SyntaxKind.EndOfLineTrivia:
+                    VisitEndOfLineTrivia(trivia, ref editor, isLast);
+                    break;
+
+                default:
+                    if (trivia.HasStructure)
+                        VisitStructuredTrivia(trivia, ref editor);
+                    else
+                        VisitOtherTrivia(trivia, ref editor, isLast);
+                    break;
+            }
         }
 
         return editor.ToList();
     }
 
+    private void VisitWhitespaceTrivia(
+        SyntaxTrivia               trivia,
+        ref SyntaxTriviaListEditor editor,
+        bool                       isLast)
+    {
+        if (_state == State.Interior)
+        {
+            editor.Copy(trivia);
+
+            if (isLast)
+            {
+                editor.Add(_endOfLine);
+                editor.Add(MakeFinalIndent());
+            }
+        }
+        else // at start of line
+        {
+            // Assume indentation is one trivia node; subsequent nodes are interior
+            _state = State.Interior;
+
+            if (isLast)
+                // Synthesize new indentation
+                editor.Add(MakeFinalIndent());
+            else if (_shift != 0)
+                // Synthesize new indentation
+                editor.Add(Reindent(trivia), original: trivia);
+            else // not last, no shift
+                // Skip reindenting if possible
+                editor.Copy(trivia);
+        }
+    }
+
+    private void VisitEndOfLineTrivia(
+        SyntaxTrivia               trivia,
+        ref SyntaxTriviaListEditor editor,
+        bool                       isLast)
+    {
+        if (_state == State.Initial)
+        {
+            // Strip line endings at start of text
+            editor.Skip();
+        }
+        else
+        {
+            // Every other line ending begins a new line
+            _state = State.StartOfLine;
+
+            // Replace line ending if necessary
+            editor.Add(_endOfLine, original: trivia);
+        }
+
+        if (isLast)
+        {
+            editor.Add(MakeFinalIndent());
+        }
+    }
+
+    private void VisitOtherTrivia(
+        SyntaxTrivia               trivia,
+        ref SyntaxTriviaListEditor editor,
+        bool                       isLast)
+    {
+        if (_state != State.Interior)
+        {
+            // reindent fake whitespace
+            _state = State.Interior;
+            editor.Add(Reindent(default));
+        }
+
+        editor.Copy(trivia);
+
+        if (isLast)
+        {
+            editor.Add(_endOfLine);
+            editor.Add(MakeFinalIndent());
+        }
+    }
+
+    private void VisitStructuredTrivia(SyntaxTrivia trivia, ref SyntaxTriviaListEditor editor)
+    {
+        editor.Add(VisitTrivia(trivia), original: trivia);
+    }
+
+#if PRIOR
     private SyntaxTrivia VisitWhitespaceTrivia(SyntaxTrivia trivia = default)
     {
         // Do not care about space in line interior
@@ -276,6 +389,7 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         // there is no rewriting to do for it
         return trivia;
     }
+#endif
 
     private SyntaxTrivia Reindent(SyntaxTrivia trivia)
     {
@@ -283,8 +397,12 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         if (length < 1)
             return default;
 
-        var space = GetSpace(length);
-        return Whitespace(space);
+        return Whitespace(GetSpace(length));
+    }
+
+    private SyntaxTrivia MakeFinalIndent()
+    {
+        return Whitespace(GetSpace(_finalIndent));
     }
 
     private string GetSpace(int length)
