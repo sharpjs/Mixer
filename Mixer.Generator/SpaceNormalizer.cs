@@ -3,7 +3,6 @@
 
 namespace Mixer;
 
-using System.IO.IsolatedStorage;
 using static Math;
 using static MathEx;
 
@@ -261,27 +260,30 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
     {
         if (_state == State.Interior)
         {
+            // Do not alter space in line interior
             editor.Copy(trivia);
 
+            // Synthesize final indentation if necessary
             if (isLast)
             {
                 editor.Add(_endOfLine);
                 editor.Add(MakeFinalIndent());
             }
         }
-        else // at start of line
+        else // space at start of line == indentation
         {
             // Assume indentation is one trivia node; subsequent nodes are interior
             _state = State.Interior;
 
+            // Reindent if necessary
             if (isLast)
-                // Synthesize new indentation
+                // Synthesize final indentation
                 editor.Add(MakeFinalIndent());
             else if (_shift != 0)
-                // Synthesize new indentation
+                // Synthesize other indentation
                 editor.Add(Reindent(trivia), original: trivia);
-            else // not last, no shift
-                // Skip reindenting if possible
+            else
+                // No need to reindent
                 editor.Copy(trivia);
         }
     }
@@ -305,6 +307,7 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
             editor.Add(_endOfLine, original: trivia);
         }
 
+        // Synthesize final indentation if necessary
         if (isLast)
         {
             editor.Add(MakeFinalIndent());
@@ -316,15 +319,21 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         ref SyntaxTriviaListEditor editor,
         bool                       isLast)
     {
+        // Other unstructured trivia might occur at the start of a line without
+        // any preceding whitespace trivia.  To handle that case, reindent some
+        // imaginary preceding whitespace trivia to allow the rewriter a chance
+        // to synthesize any necessary indentation and update state.
         if (_state != State.Interior)
         {
-            // reindent fake whitespace
             _state = State.Interior;
             editor.Add(Reindent(default));
         }
 
+        // Other unstructured trivia is neither whitespace nor a newline, so
+        // there is no rewriting to do for it
         editor.Copy(trivia);
 
+        // Synthesize final indentation if necessary
         if (isLast)
         {
             editor.Add(_endOfLine);
@@ -334,62 +343,9 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
 
     private void VisitStructuredTrivia(SyntaxTrivia trivia, ref SyntaxTriviaListEditor editor)
     {
+        // Recurse into structured trivia to visit its leaf nodes
         editor.Add(VisitTrivia(trivia), original: trivia);
     }
-
-#if PRIOR
-    private SyntaxTrivia VisitWhitespaceTrivia(SyntaxTrivia trivia = default)
-    {
-        // Do not care about space in line interior
-        if (_state == State.Interior)
-            return trivia;
-
-        // Assume indentation is one trivia node; subsequent nodes are interior
-        _state = State.Interior;
-
-        // Skip reindenting if possible
-        if (_shift == 0)
-            return trivia;
-
-        // Synthesize new indentation
-        return Reindent(trivia);
-    }
-
-    private SyntaxTrivia VisitEndOfLineTrivia(SyntaxTrivia trivia)
-    {
-        // Strip line endings at start of text
-        if (_state == State.Initial)
-            return default;
-
-        // Every other line ending begins a new line
-        _state = State.StartOfLine;
-
-        // Skip replacing line ending if possible
-        if (trivia.IsEquivalentTo(_endOfLine))
-            return trivia;
-
-        // Replace line ending
-        return _endOfLine;
-    }
-
-    private SyntaxTrivia VisitOtherTrivia(SyntaxTrivia trivia, SyntaxTriviaListEditor editor)
-    {
-        // Recurse into structured trivia to visit its leaf nodes
-        if (trivia.HasStructure)
-            return VisitTrivia(trivia);
-
-        // Other unstructured trivia might occur at the start of a line without
-        // any preceding whitespace trivia.  To handle that case, visit some
-        // imaginary preceding whitespace trivia to allow the rewriter a chance
-        // to synthesize any necessary indentation and update state.
-        var space = VisitWhitespaceTrivia();
-        editor.Add(space, different: space.IsSome());
-
-        // Other unstructured trivia is neither whitespace nor a newline, so
-        // there is no rewriting to do for it
-        return trivia;
-    }
-#endif
 
     private SyntaxTrivia Reindent(SyntaxTrivia trivia)
     {
