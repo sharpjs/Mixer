@@ -230,11 +230,17 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
             switch (trivia.Kind())
             {
                 case SyntaxKind.WhitespaceTrivia:
-                    VisitWhitespaceTrivia(trivia, ref editor, isLast);
+                    if (_state == State.Interior)
+                        VisitInteriorWhitespaceTrivia(trivia, ref editor, isLast);
+                    else
+                        VisitIndentationWhitespaceTrivia(trivia, ref editor, isLast);
                     break;
 
                 case SyntaxKind.EndOfLineTrivia:
-                    VisitEndOfLineTrivia(trivia, ref editor, isLast);
+                    if (_state == State.Initial)
+                        VisitInitialEndOfLineTrivia(trivia, ref editor, isLast);
+                    else
+                        VisitEndOfLineTrivia(trivia, ref editor, isLast);
                     break;
 
                 default:
@@ -249,41 +255,55 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         return editor.ToList();
     }
 
-    private void VisitWhitespaceTrivia(
+    private void VisitInteriorWhitespaceTrivia(
         SyntaxTrivia               trivia,
         ref SyntaxTriviaListEditor editor,
         bool                       isLast)
     {
-        if (_state == State.Interior)
+        if (isLast)
         {
-            if (isLast)
-            {
-                // Replace with final indentation
-                editor.Add(_endOfLine);
-                editor.Add(MakeFinalIndent());
-            }
-            else
-            {
-                // Do not alter space in line interior
-                editor.Copy(trivia);
-            }
+            // Replace with final indentation
+            editor.Add(_endOfLine);
+            editor.Add(MakeFinalIndent());
         }
-        else // space at start of line == indentation
+        else
         {
-            // Assume indentation is one trivia node; subsequent nodes are interior
-            _state = State.Interior;
+            // Do not alter space in line interior
+            editor.Copy(trivia);
+        }
+    }
 
-            // Reindent if necessary
-            if (isLast)
-                // Synthesize final indentation
-                editor.Add(MakeFinalIndent());
-            else if (_shift != 0)
-                // Synthesize other indentation
-                editor.Add(Reindent(trivia), original: trivia);
-            else
-                // No need to reindent
-                editor.Copy(trivia);
-        }
+    private void VisitIndentationWhitespaceTrivia(
+        SyntaxTrivia               trivia,
+        ref SyntaxTriviaListEditor editor,
+        bool                       isLast)
+    {
+        // Assume indentation is one trivia node; subsequent nodes are interior
+        _state = State.Interior;
+
+        // Reindent if necessary
+        if (isLast)
+            // Synthesize final indentation
+            editor.Add(MakeFinalIndent());
+        else if (_shift != 0)
+            // Synthesize other indentation
+            editor.Add(Reindent(trivia), original: trivia);
+        else
+            // No need to reindent
+            editor.Copy(trivia);
+    }
+
+    private void VisitInitialEndOfLineTrivia(
+        SyntaxTrivia               trivia,
+        ref SyntaxTriviaListEditor editor,
+        bool                       isLast)
+    {
+        // Strip line endings at start of text
+        editor.Skip();
+
+        // Synthesize final indentation if necessary
+        if (isLast)
+            editor.Add(MakeFinalIndent());
     }
 
     private void VisitEndOfLineTrivia(
@@ -291,25 +311,15 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
         ref SyntaxTriviaListEditor editor,
         bool                       isLast)
     {
-        if (_state == State.Initial)
-        {
-            // Strip line endings at start of text
-            editor.Skip();
-        }
-        else
-        {
-            // Every other line ending begins a new line
-            _state = State.StartOfLine;
+        // Every other line ending begins a new line
+        _state = State.StartOfLine;
 
-            // Replace line ending if necessary
-            editor.Add(_endOfLine, original: trivia);
-        }
+        // Replace line ending if necessary
+        editor.Add(_endOfLine, original: trivia);
 
         // Synthesize final indentation if necessary
         if (isLast)
-        {
             editor.Add(MakeFinalIndent());
-        }
     }
 
     private void VisitOtherTrivia(
