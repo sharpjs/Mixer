@@ -229,10 +229,6 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
 
             switch (trivia.Kind())
             {
-                case SyntaxKind.None:
-                    editor.Skip();
-                    break;
-
                 case SyntaxKind.WhitespaceTrivia:
                     VisitWhitespaceTrivia(trivia, ref editor, isLast);
                     break;
@@ -260,14 +256,16 @@ internal class SpaceNormalizer : CSharpSyntaxRewriter
     {
         if (_state == State.Interior)
         {
-            // Do not alter space in line interior
-            editor.Copy(trivia);
-
-            // Synthesize final indentation if necessary
             if (isLast)
             {
+                // Replace with final indentation
                 editor.Add(_endOfLine);
                 editor.Add(MakeFinalIndent());
+            }
+            else
+            {
+                // Do not alter space in line interior
+                editor.Copy(trivia);
             }
         }
         else // space at start of line == indentation

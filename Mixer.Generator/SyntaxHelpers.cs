@@ -28,8 +28,10 @@ internal static class SyntaxHelpers
     /// </remarks>
     public const int IndentSize = 4;
 
+#if USED
     public static bool IsNone(this SyntaxTrivia trivia)
         => trivia.IsKind(SyntaxKind.None);
+#endif
 
     public static bool IsSome(this SyntaxTrivia trivia)
         => !trivia.IsKind(SyntaxKind.None);
@@ -40,7 +42,7 @@ internal static class SyntaxHelpers
     public static AliasQualifiedNameSyntax Global(string name)
         => AliasQualifiedName(Global(), IdentifierName(name));
 
-#if NOT_USED
+#if USED
     public static AliasQualifiedNameSyntax Global(string alias, string name)
         => AliasQualifiedName(IdentifierName(alias), IdentifierName(name));
 #endif
