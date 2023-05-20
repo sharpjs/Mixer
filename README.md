@@ -88,6 +88,24 @@ partial class MyTargetType { ... }
 
 That's it!
 
+## Building from Source
+
+If you have Visual Studio 2022, just open `Mixer.sln` and build as you would
+any other solution.
+
+Or from PowerShell 7:
+
+```powershell
+# The default: build and run tests
+.\Make.ps1 [-Test] [-Configuration <String>]
+
+# Just build; don't run tests
+.\Make.ps1 -Build [-Configuration <String>]
+
+# Build and run tests with coverage
+.\Make.ps1 -Coverage [-Configuration <String>]
+```
+
 ## Advanced Topics
 
 ### How do I see the generated code?
