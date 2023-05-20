@@ -506,7 +506,18 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         if (_isRhsOfQualifiedName)
             return node.WithIdentifier(VisitRhsIdentifierOfQualifiedName(node.Identifier, symbol));
 
-        return Qualify(symbol, node);
+        switch (symbol.Kind)
+        {
+            case SymbolKind.NamedType:
+            case SymbolKind.Method when symbol is IMethodSymbol { MethodKind: MethodKind.Ordinary, IsStatic: true }:
+            case SymbolKind.Method when symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension }:
+                return IsMixinType(symbol.ContainingType)
+                    ? MakeMemberAccessOnTargetType(node)
+                    : QualifyAsExpression(symbol, node);
+
+            default:
+                return node;
+        }
     }
 
     public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
@@ -533,20 +544,20 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         switch (symbol.Kind)
         {
             case SymbolKind.Namespace when symbol is INamespaceSymbol { IsGlobalNamespace: false }:
-                return QualifyOrKeywordify(symbol).WithTriviaFrom(node);
+                return QualifyAsName(symbol, node);
 
             case SymbolKind.NamedType:
-            case SymbolKind.Method    when symbol is IMethodSymbol   { MethodKind: MethodKind.Ordinary, IsStatic: true }:
-            case SymbolKind.Method    when symbol is IMethodSymbol   { MethodKind: MethodKind.ReducedExtension }:
-            case SymbolKind.Field     when symbol is IFieldSymbol    { IsStatic: true }:
-            case SymbolKind.Property  when symbol is IPropertySymbol { IsStatic: true }:
-            case SymbolKind.Event     when symbol is IEventSymbol    { IsStatic: true }:
+            case SymbolKind.Method   when symbol is IMethodSymbol   { MethodKind: MethodKind.Ordinary, IsStatic: true }:
+            case SymbolKind.Method   when symbol is IMethodSymbol   { MethodKind: MethodKind.ReducedExtension }:
+            case SymbolKind.Field    when symbol is IFieldSymbol    { IsStatic: true }:
+            case SymbolKind.Property when symbol is IPropertySymbol { IsStatic: true }:
+            case SymbolKind.Event    when symbol is IEventSymbol    { IsStatic: true }:
                 return IsMixinType(symbol.ContainingType)
-                    ? MakeMemberAccessOnTargetType(node).WithTriviaFrom(node)
-                    : QualifyOrKeywordify(symbol).WithTriviaFrom(node);
+                    ? MakeMemberAccessOnTargetType(node)
+                    : QualifyAsExpression(symbol, node);
 
             case SymbolKind.Method when symbol is IMethodSymbol { MethodKind: MethodKind.Constructor }:
-                return QualifyOrKeywordify(symbol.ContainingType).WithTriviaFrom(node);
+                return QualifyAsExpression(symbol.ContainingType, node);
 
             case SymbolKind.TypeParameter:
                 return IdentifierName(_placeholders[symbol.Name]).WithTriviaFrom(node);
@@ -567,13 +578,15 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
         return Identifier(symbol.ContainingType.Name).WithTriviaFrom(identifier);
     }
 
-    private MemberAccessExpressionSyntax MakeMemberAccessOnTargetType(IdentifierNameSyntax node)
+    private MemberAccessExpressionSyntax MakeMemberAccessOnTargetType(SimpleNameSyntax node)
     {
-        return MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            IdentifierName(TargetTypeNamePlaceholder),
-            node.WithoutTrivia()
-        );
+        return
+            MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                IdentifierName(TargetTypeNamePlaceholder),
+                node.WithoutTrivia()
+            )
+            .WithTriviaFrom(node);
     }
 
     #endregion
@@ -586,7 +599,7 @@ internal class MixinGeneralizer : CSharpSyntaxRewriter
 
         // Expand extension method invocation
 
-        var name   = (NameSyntax?)         Visit(expression.Name)!;       // Never null in this rewriter
+        var name   = (ExpressionSyntax?)   Visit(expression.Name)!;       // Never null in this rewriter
         var target = (ExpressionSyntax?)   Visit(expression.Expression)!; // Never null in this rewriter
         var args   = (ArgumentListSyntax?) Visit(node.ArgumentList)!;     // Never null in this rewriter
 

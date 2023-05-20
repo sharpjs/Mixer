@@ -26,9 +26,9 @@ namespace Mixer;
 /// </remarks>
 internal class MixinSpecializer : CSharpSyntaxRewriter
 {
-    private readonly INamedTypeSymbol                        _targetType;
-    private /*lazy*/ NameSyntax?                             _targetName;
-    private readonly ImmutableDictionary<string, TypeSyntax> _replacements;
+    private readonly INamedTypeSymbol                              _targetType;
+    private /*lazy*/ ExpressionSyntax?                             _targetTypeExpression;
+    private readonly ImmutableDictionary<string, ExpressionSyntax> _replacements;
 
     /// <summary>
     ///   Initializes a new <see cref="MixinSpecializer"/> instance.
@@ -44,8 +44,9 @@ internal class MixinSpecializer : CSharpSyntaxRewriter
         _replacements = GenerateReplacements(mixinType);
     }
 
-    private NameSyntax TargetName
-        => _targetName ??= Qualify(_targetType, GetNameWithGenericArguments(_targetType));
+    private ExpressionSyntax TargetTypeExpression
+        =>  _targetTypeExpression
+        ??= QualifyAsExpression(_targetType, GetNameWithGenericArguments(_targetType));
 
     /// <summary>
     ///   Converts a mixin from the generalized form produced by
@@ -86,10 +87,10 @@ internal class MixinSpecializer : CSharpSyntaxRewriter
             ?? base.VisitIdentifierName(node);
     }
 
-    private static ImmutableDictionary<string, TypeSyntax>
+    private static ImmutableDictionary<string, ExpressionSyntax>
         GenerateReplacements(INamedTypeSymbol type)
     {
-        var builder = ImmutableDictionary.CreateBuilder<string, TypeSyntax>();
+        var builder = ImmutableDictionary.CreateBuilder<string, ExpressionSyntax>();
 
         GenerateReplacements(builder, type);
 
@@ -98,21 +99,21 @@ internal class MixinSpecializer : CSharpSyntaxRewriter
 
     private static void
         GenerateReplacements(
-            ImmutableDictionary<string, TypeSyntax>.Builder dictionary,
-            INamedTypeSymbol                                type
+            ImmutableDictionary<string, ExpressionSyntax>.Builder dictionary,
+            INamedTypeSymbol                                      type
         )
     {
         if (type.ContainingType is { } parent)
             GenerateReplacements(dictionary, parent);
 
         foreach (var argument in type.TypeArguments)
-            dictionary.Add(GetPlaceholder(dictionary.Count), QualifyOrKeywordify(argument));
+            dictionary.Add(GetPlaceholder(dictionary.Count), QualifyAsExpression(argument));
     }
 
-    private TypeSyntax? GetReplacement(string name)
+    private ExpressionSyntax? GetReplacement(string name)
     {
         if (name == TargetTypeNamePlaceholder)
-            return TargetName;
+            return TargetTypeExpression;
 
         if (_replacements.TryGetValue(name, out var replacement))
             return replacement;

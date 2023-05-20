@@ -104,15 +104,21 @@ public class GenericTargetTests
             """
             using System;
             using Mixer;
+            using static Test.Stuff;
 
             namespace Test;
+
+            static class Stuff
+            {
+                internal class Base { }
+            }
 
             [Mixin]
             $source Source { }
 
             [Include<Source>]
             partial $target Target<T0, T1>
-                where T0 : Attribute, IFormattable, new()
+                where T0 : Base, IFormattable, new()
                 where T1 : notnull, new()
             { }
             """
@@ -131,7 +137,7 @@ public class GenericTargetTests
             #nullable enable
 
             partial $target Target<T0, T1>
-                where T0 : global::System.Attribute, global::System.IFormattable, new()
+                where T0 : global::Test.Stuff.Base, global::System.IFormattable, new()
                 where T1 : notnull, new()
             {
             }

@@ -63,7 +63,7 @@ internal ref struct MixinOutputBuilder
         if (scope.IsGlobalNamespace)
             return RenderMixinsInGlobalNamespace();
 
-        var name = Qualify(scope, alias: null);
+        var name = QualifyAsName(scope, alias: null);
 
         return ImmutableArray.Create(
             _version.SupportsFileScopedNamespaces()
@@ -477,7 +477,7 @@ internal ref struct MixinOutputBuilder
 
         // Non-special primary and any secondary constraints
         foreach (var type in types)
-            array.AddCommaSeparated(TypeConstraint(Qualify(type)));
+            array.AddCommaSeparated(TypeConstraint(QualifyAsName(type)));
             // NOTE: No predefined type is usable as a constraint.
 
         // Constructor constraint

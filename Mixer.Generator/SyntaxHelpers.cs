@@ -50,41 +50,69 @@ internal static class SyntaxHelpers
     public static QualifiedNameSyntax Dot(this NameSyntax lhs, string name)
         => QualifiedName(lhs, IdentifierName(name));
 
-    public static TypeSyntax // AliasQualifiedNameSyntax | QualifiedNameSyntax | PredefinedTypeSyntax
-        QualifyOrKeywordify(ISymbol symbol, string? alias = "global")
+    public static ExpressionSyntax QualifyAsExpression(
+        ISymbol           symbol,
+        SimpleNameSyntax? name  = null,
+        string?           alias = "global")
     {
-        if (symbol.HasPredefinedName(out var keyword))
-            return PredefinedType(Token(keyword));
+        var expression = symbol.HasPredefinedName(out var keyword)
+            ? PredefinedType(Token(keyword))
+            : QualifyCore(symbol, name, alias, avoidMemberAccess: false);
 
-        return Qualify(symbol, alias);
+        return expression.WithTriviaFromIfNotNull(name);
     }
 
-    public static NameSyntax // AliasQualifiedNameSyntax | QualifiedNameSyntax
-        Qualify(ISymbol symbol, string? alias = "global")
+    public static NameSyntax QualifyAsName(
+        ISymbol           symbol,
+        SimpleNameSyntax? name  = null,
+        string?           alias = "global")
     {
-        return QualifyCore(symbol, IdentifierName(symbol.Name), alias);
+        // The symbol should be an INamespaceSymbol except for special cases in
+        // which qualification via member access expression is not supported.
+        // One such case is a generic type constraint: it supports TypeSyntax
+        // but not ExpressionSyntax.
+
+        return (NameSyntax)
+            QualifyCore(symbol, name, alias, avoidMemberAccess: true)
+            .WithTriviaFromIfNotNull(name);
     }
 
-    public static NameSyntax // AliasQualifiedNameSyntax | QualifiedNameSyntax
-        Qualify(ISymbol symbol, SimpleNameSyntax name, string? alias = "global")
+    private static ExpressionSyntax QualifyCore(
+        ISymbol           symbol,
+        SimpleNameSyntax? name,
+        string?           alias,
+        bool              avoidMemberAccess)
     {
-        return QualifyCore(symbol, name.WithoutTrivia(), alias).WithTriviaFrom(name);
-    }
-
-    private static NameSyntax // AliasQualifiedNameSyntax | QualifiedNameSyntax
-        QualifyCore(ISymbol symbol, SimpleNameSyntax name, string? alias = "global")
-    {
-        var parent = symbol.ContainingSymbol;
-
-        if (parent is INamespaceSymbol { IsGlobalNamespace: true })
-            return alias is { Length: > 0 }
-                ? AliasQualifiedName(IdentifierName(alias), name)
-                : name;
-
-        return QualifiedName(Qualify(parent, alias), name);
-
         // NOTE: This method is not invoked in any context where a symbol could
         // have an empty name.
+
+        // Ensure RHS identifier exists, is trivia-free, and is not a short name
+        name = name is null || name.Identifier.Text != symbol.Name
+            ? IdentifierName(symbol.Name) // (re)synthesize: Foo -> FooAttribute
+            : name.WithoutTrivia();
+
+        // Qualify
+        return symbol.ContainingSymbol switch
+        {
+            INamespaceSymbol { IsGlobalNamespace: true } when alias is { Length: > 0 }
+                => AliasQualifiedName(IdentifierName(alias), name),
+
+            INamespaceSymbol { IsGlobalNamespace: true }
+                => name,
+
+            INamespaceSymbol parent
+                => QualifiedName(QualifyAsName(parent, null, alias), name),
+
+            var parent when avoidMemberAccess
+                => QualifiedName(QualifyAsName(parent, null, alias), name),
+
+            var parent
+                => MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    QualifyAsExpression(parent, null, alias),
+                    name
+                )
+        };
     }
 
     public static bool HasPredefinedName(this ISymbol? symbol, out SyntaxKind keyword)
@@ -248,6 +276,14 @@ internal static class SyntaxHelpers
         return list.WithArguments(arguments);
     }
 
+    public static T AddLeadingTrivia<T>(this T node, SyntaxTriviaList trivia)
+        where T : SyntaxNode
+    {
+        return node.WithLeadingTrivia(
+            trivia.AddRange(node.GetLeadingTrivia())
+        );
+    }
+
     public static ImmutableArray<T> AddLeadingTrivia<T>(
         this ImmutableArray<T> nodes,
         SyntaxTriviaList       trivia)
@@ -258,12 +294,10 @@ internal static class SyntaxHelpers
             : nodes;
     }
 
-    public static T AddLeadingTrivia<T>(this T node, SyntaxTriviaList trivia)
+    public static T WithTriviaFromIfNotNull<T>(this T node, SyntaxNode? other)
         where T : SyntaxNode
     {
-        return node.WithLeadingTrivia(
-            trivia.AddRange(node.GetLeadingTrivia())
-        );
+        return other is null ? node : node.WithTriviaFrom(other);
     }
 
     /// <summary>
