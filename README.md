@@ -1,6 +1,7 @@
 # Mixer
 
 [![Build](https://github.com/sharpjs/Mixer/workflows/Build/badge.svg)](https://github.com/sharpjs/Mixer/actions)
+[![Build](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/sharpjs/Mixer/actions)
 [![NuGet](https://img.shields.io/nuget/v/Mixer.svg)](https://www.nuget.org/packages/Mixer)
 [![NuGet](https://img.shields.io/nuget/dt/Mixer.svg)](https://www.nuget.org/packages/Mixer)
 
