@@ -127,7 +127,7 @@ function Export-CoverageReport {
         "reportgenerator"
         "-reports:coverage\raw\**\coverage.opencover.xml"
         "-targetdir:coverage"
-        "-reporttypes:Cobertura;JsonSummary;Html_Dark;Badges"
+        "-reporttypes:Html;JsonSummary"
         "-verbosity:Warning"
     )
     $Summary = (Get-Content coverage\Summary.json -Raw | ConvertFrom-Json).summary
